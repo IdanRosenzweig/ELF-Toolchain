@@ -173,12 +173,12 @@ private:
         size_t curr_reserve = reserve_start;
 
         // argc
-        unsigned long *stack_argc = (unsigned long *) _stack_bottom;
+        unsigned long *stack_argc = reinterpret_cast<unsigned long *>(_stack_bottom);
         *stack_argc = proc_var.argc;
         stack_argc++;
 
         // argv
-        char **stack_argv = (char **) stack_argc;
+        char **stack_argv = reinterpret_cast<char **>(stack_argc);
         for (size_t i = 0; proc_var.argv[i] != nullptr; i++) {
             size_t len = strlen(proc_var.argv[i]) + 1; // including the trailing null byte
 
@@ -209,9 +209,11 @@ private:
         typename elf_file<CLASS>::auxiliary *stack_aux = reinterpret_cast<elf_file<CLASS>::auxiliary *>(stack_env); // ROUND_UP((size_t) stack_env, 0x10) doesn't work for some reason
 
 #define set_auxiliary_var(ptr, type, val) (ptr)->a_type = type; ptr->a_un.a_val = (uint64_t) (val); (ptr)++;
+        set_auxiliary_var(stack_aux, AT_SYSINFO, getauxval(AT_SYSINFO));
         set_auxiliary_var(stack_aux, AT_SYSINFO_EHDR, getauxval(AT_SYSINFO_EHDR));
         set_auxiliary_var(stack_aux, AT_MINSIGSTKSZ, getauxval(AT_MINSIGSTKSZ));
         set_auxiliary_var(stack_aux, AT_HWCAP, getauxval(AT_HWCAP)); // 0x178bfbff
+        set_auxiliary_var(stack_aux, AT_HWCAP2, getauxval(AT_HWCAP2));
         set_auxiliary_var(stack_aux, AT_PHDR, (size_t) (load_min_addr + elf.get_header()->e_phoff));
         set_auxiliary_var(stack_aux, AT_CLKTCK, getauxval(AT_CLKTCK));
 
@@ -227,6 +229,19 @@ private:
         set_auxiliary_var(stack_aux, AT_EUID, geteuid());
         set_auxiliary_var(stack_aux, AT_GID, getgid());
         set_auxiliary_var(stack_aux, AT_EGID, getegid());
+
+        set_auxiliary_var(stack_aux, AT_DCACHEBSIZE, getauxval(AT_DCACHEBSIZE));
+        set_auxiliary_var(stack_aux, AT_ICACHEBSIZE, getauxval(AT_ICACHEBSIZE));
+        set_auxiliary_var(stack_aux, AT_UCACHEBSIZE, getauxval(AT_UCACHEBSIZE));
+
+        set_auxiliary_var(stack_aux, AT_L1I_CACHESIZE, getauxval(AT_L1I_CACHESIZE));
+        set_auxiliary_var(stack_aux, AT_L1I_CACHEGEOMETRY, getauxval(AT_L1I_CACHEGEOMETRY));
+        set_auxiliary_var(stack_aux, AT_L1D_CACHESIZE, getauxval(AT_L1D_CACHESIZE));
+        set_auxiliary_var(stack_aux, AT_L1D_CACHEGEOMETRY, getauxval(AT_L1D_CACHEGEOMETRY));
+        set_auxiliary_var(stack_aux, AT_L2_CACHESIZE, getauxval(AT_L2_CACHESIZE));
+        set_auxiliary_var(stack_aux, AT_L2_CACHEGEOMETRY, getauxval(AT_L2_CACHEGEOMETRY));
+        set_auxiliary_var(stack_aux, AT_L3_CACHESIZE, getauxval(AT_L3_CACHESIZE));
+        set_auxiliary_var(stack_aux, AT_L3_CACHEGEOMETRY, getauxval(AT_L3_CACHEGEOMETRY));
 
         set_auxiliary_var(stack_aux, AT_SECURE, getauxval(AT_SECURE));
 
