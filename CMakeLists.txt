@@ -32,6 +32,7 @@ add_executable(Linux_x64_loader # for regular x64 executables
 
         unix_based/linux_x64/linux_x64_loader.h
         unix_based/linux_x64/linux_x64_loader.cpp
+        unix_based/include/error_codes.h
 
 )
 target_link_libraries(Linux_x64_loader ${CMAKE_DL_LIBS})

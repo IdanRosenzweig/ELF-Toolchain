@@ -5,6 +5,7 @@
 #include "include/auxv.h"
 #include "include/fcntl.h"
 #include "include/unistd.h"
+#include "include/error_codes.h"
 #include <cstring>
 
 #include "unix_based_loader.h"
@@ -62,7 +63,7 @@ private:
         size_t segments_table_off = elf.get_header()->e_phoff;
         size_t segment_table_entry_size = elf.get_header()->e_phentsize;
 
-        //  checking that the process can hold the whole elf's image, calculating the load base address on the way
+        // checking that the process can hold the whole elf's image, calculating the load base address on the way
         // the segments are congruent
         size_t min = SIZE_MAX;
         size_t max = 0;
@@ -98,9 +99,9 @@ private:
         } else { // ET_DYN
             void *mapped = mmap(nullptr, range, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
             if (mapped == MAP_FAILED) throw "mmap fail";
+            munmap(mapped, range);
 
             bias = (size_t) mapped;
-            munmap(mapped, range);
         }
 
 
@@ -111,7 +112,6 @@ private:
                     segments_table_off + segment_table_entry_size * i);
 
             if (segment->p_type != PT_LOAD) continue; // checking segment type
-//        if (segment->p_filesz == 0) continue;
 
             // raw load address and mapping length
             size_t raw_load_addr = (size_t) bias + (size_t) segment->p_vaddr;
@@ -151,7 +151,7 @@ private:
             if (segment->p_flags & PF_X) prot_flags |= PROT_EXEC;
             mprotect(mapped, adjusted_mapping_len, prot_flags); // using adjusted values
 
-            if (*load_min_addr == (size_t) -1 || adjusted_load_addr < *load_min_addr)
+            if (*load_min_addr == (size_t) SIZE_MAX || adjusted_load_addr < *load_min_addr)
                 *load_min_addr = adjusted_load_addr;
         }
 
@@ -231,9 +231,9 @@ private:
         set_auxiliary_var(stack_aux, AT_SECURE, getauxval(AT_SECURE));
 
         int fd = open("/dev/random", O_RDONLY);
-        if (fd == -1) throw "can't open /dev/random";
+        if (fd == OPEN_ERROR) throw "can't open /dev/random";
         if (read(fd, (void *) curr_reserve, 16) != 16) throw "can't read from /dev/random";
-        close(fd);
+        if(close(fd) == CLOSE_ERROR) throw "can't close /dev/random";
         set_auxiliary_var(stack_aux, AT_RANDOM, curr_reserve);
         curr_reserve += 16;
 
