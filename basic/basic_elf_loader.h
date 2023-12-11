@@ -3,6 +3,8 @@
 
 #include <dlfcn.h>
 #include <queue>
+#include <iostream>
+#include <map>
 
 #include "../exec_file_formats/elf/elf_file.h"
 #include "../utils/stack.h"
@@ -21,21 +23,26 @@ protected:
             const char *str) const = 0;
 
 #define MAP_ERROR ((void*) -1)
+
     // map a segment at addr with length len, open to write to open
-    virtual void* map_fixed(void* addr, size_t len) const = 0;
+    virtual void *map_fixed(void *addr, size_t len) const = 0;
+
     // map a segment at random address with length len, open to write to open
-    virtual void* map_random(size_t len) const = 0;
+    virtual void *map_random(size_t len) const = 0;
 
 #define UNMAP_ERROR (-1)
+
     // unmap a segment at addr with length len
-    virtual int unmap(void* addr, size_t len) const = 0;
+    virtual int unmap(void *addr, size_t len) const = 0;
 
 #define PROTECT_ERROR (-1)
+
     // change back the protection on a segment according to prot
-    virtual int protect(void* addr, size_t len, int flags) const = 0;
+    virtual int protect(void *addr, size_t len, int flags) const = 0;
 
 
     const size_t STACK_SIZE = 0x1000000 * 0x10;
+
     virtual stack allocate_stack_elf(const ELF_FILE &elf) const { // may be overridden by subclasses
         size_t size = STACK_SIZE;
 
@@ -145,7 +152,8 @@ protected:
 
 
             // change back protection
-            if (protect(mapped, adjusted_mapping_len, segment->p_flags) == PROTECT_ERROR) throw "failed to change segment flags";
+            if (protect(mapped, adjusted_mapping_len, segment->p_flags) == PROTECT_ERROR)
+                throw "failed to change segment flags";
 
             if (*load_min_addr == (size_t) SIZE_MAX || adjusted_load_addr < *load_min_addr)
                 *load_min_addr = adjusted_load_addr;
@@ -229,6 +237,18 @@ protected:
         // rpath and runpath
         std::string rpath;
         std::string runpath;
+
+        // flags
+        size_t flags = 0;
+        size_t flags_1 = 0;
+
+        // version control
+        bool ver = false;
+        size_t versym = 0;
+
+        size_t verneed = 0;
+        size_t verneednum = 0;
+
 
         size_t _i = 0;
         while (true) {
@@ -341,6 +361,29 @@ protected:
                     break;
                 }
 
+                case DT_FLAGS: {
+                    flags = val;
+                    break;
+                }
+                case DT_FLAGS_1: {
+                    flags_1 = val;
+                    break;
+                }
+
+                case DT_VERSYM: {
+                    ver = true;
+                    versym = val;
+                    break;
+                }
+                case DT_VERNEED: {
+                    verneed = val;
+                    break;
+                }
+                case DT_VERNEEDNUM: {
+                    verneednum = val;
+                    break;
+                }
+
             }
 
             _i++;
@@ -351,31 +394,68 @@ protected:
 
 
         // opening all the needed_files files
-        std::vector<std::string> possible_prefixes;
-        if (!runpath.empty()) possible_prefixes.push_back(runpath + "/");
-        if (!rpath.empty()) possible_prefixes.push_back(rpath + "/");
-        for (const std::string &prefix: get_possible_search_prefixes()) {
-            possible_prefixes.push_back(prefix);
-        }
+        std::vector<std::string> search_prefixes;
+        if (!runpath.empty())
+            search_prefixes.push_back(runpath + "/");
+        if (!rpath.empty())
+            search_prefixes.push_back(rpath + "/");
+        for (const std::string &prefix: get_possible_search_prefixes())
+            search_prefixes.push_back(prefix);
 
-        std::vector<void *> needed_handles(needed_files.size());
+        int dlopen_mode = 0;
+//        if (flags & DF_BIND_NOW)
+//            dlopen_mode |= RTLD_NOW;
+//        else dlopen_mode |= RTLD_LAZY;
+//        if (flags_1 & DF_1_GLOBAL)
+//            dlopen_mode |= RTLD_GLOBAL;
+//        else dlopen_mode |= RTLD_LOCAL;
+        dlopen_mode = RTLD_LAZY | RTLD_GLOBAL;
+
+        std::vector<void *> handles(needed_files.size());
         for (size_t i = 0; i < needed_files.size(); i++) {
             std::string file;
             bool opened = false;
 
-            for (const std::string &prefix: possible_prefixes) {
+            for (const std::string &prefix: search_prefixes) {
                 file = prefix + needed_files[i];
 
                 dlerror();
-                void *handler = dlopen(file.c_str(), RTLD_LAZY | RTLD_GLOBAL); // RTLD_NOW?
+                void *handler = dlopen(file.c_str(), dlopen_mode);
                 if (handler != nullptr) {
-                    needed_handles[i] = handler;
+                    handles[i] = handler;
                     opened = true;
                     break;
                 }
             }
 
             if (!opened) throw "can't open/find a certain library using dlopen()";
+        }
+
+
+        std::map<ssize_t, char *> versions;
+        if (ver) {
+            size_t ver_sum = 0;
+            for (size_t i = 0; i < verneednum; i++) {
+                typename elf_file<CLASS>::verneed *ver = reinterpret_cast<typename elf_file<CLASS>::verneed *>(
+                        the_load_bias + verneed + ver_sum
+                );
+
+//                char* file_name = reinterpret_cast<char*>(the_load_bias + dynamic_strtab + ver->vn_file) << "\n";
+
+                size_t vernaux_sum = 0;
+                for (size_t j = 0; j < ver->vn_cnt; j++) {
+                    typename elf_file<CLASS>::vernaux *vernaux = reinterpret_cast<typename elf_file<CLASS>::vernaux *>(
+                            (size_t) ver + ver->vn_aux + vernaux_sum
+                    );
+
+                    char *ver_name = reinterpret_cast<char *>(the_load_bias + dynamic_strtab + vernaux->vna_name);
+                    versions[(ssize_t) vernaux->vna_other] = ver_name;
+
+                    vernaux_sum += vernaux->vna_next;
+                }
+
+                ver_sum += ver->vn_next;
+            }
         }
 
 
@@ -411,16 +491,35 @@ protected:
             } else throw "weird plt relocations type";
         }
 
+
         // doing the RELA relocations
         while (!rela_relocs.empty()) {
             typename elf_file<CLASS>::rela *curr_rela = rela_relocs.front();
             rela_relocs.pop();
 
+            // the relocation's symbol
             typename elf_file<CLASS>::sym *sym = reinterpret_cast<elf_file<CLASS>::sym *>(
                     the_load_bias + dynamic_symtab +
                     dynamic_symtab_entry_size * elf_file<CLASS>::ELF_R_SYM(curr_rela->r_info));
-
             char *sym_name = reinterpret_cast<char *>(the_load_bias + dynamic_strtab + (size_t) sym->st_name);
+
+            // the symbol's version (if exists)
+            char *version_name = nullptr;
+            if (ver) {
+                typename elf_file<CLASS>::versym version_num = *reinterpret_cast<typename elf_file<CLASS>::versym *>(
+                        the_load_bias + versym +
+                        sizeof(typename elf_file<CLASS>::versym) * elf_file<CLASS>::ELF_R_SYM(curr_rela->r_info)
+                );
+                switch (version_num) {
+                    case 0:
+                    case 1:
+                        break;
+                    default: {
+                        version_name = versions[version_num];
+                        break;
+                    }
+                }
+            }
 
             // find relocation value
             size_t relocation_value = 0;
@@ -428,7 +527,13 @@ protected:
                 bool found = false;
 
                 dlerror(); // reset last call's error
-                void *sym_val = dlsym(RTLD_DEFAULT, sym_name);
+
+                void *sym_val;
+                if (version_name == nullptr) // doesn't have version
+                    sym_val = dlsym(RTLD_DEFAULT, sym_name);
+                else // has version
+                    sym_val = dlvsym(RTLD_DEFAULT, sym_name, version_name);
+
                 char *err = dlerror();
                 if (err == nullptr) { // no error, found
                     relocation_value = (size_t) sym_val;
@@ -437,7 +542,7 @@ protected:
 
                 if (!found) {
                     if (elf_file<CLASS>::ELF_ST_BIND(sym->st_info) != STB_WEAK) {
-                        throw "no relocation found, FAILED\n";
+                        throw "relocation value not found, FAILED\n";
                     }
                     // no relocation found, but symbol is weak
                 }
@@ -459,11 +564,29 @@ protected:
             typename elf_file<CLASS>::rel *curr_rel = rel_relocs.front();
             rel_relocs.pop();
 
+            // the relocation's symbol
             typename elf_file<CLASS>::sym *sym = reinterpret_cast<elf_file<CLASS>::sym *>(
                     the_load_bias + dynamic_symtab +
                     dynamic_symtab_entry_size * elf_file<CLASS>::ELF_R_SYM(curr_rel->r_info));
-
             char *sym_name = reinterpret_cast<char *>(the_load_bias + dynamic_strtab + (size_t) sym->st_name);
+
+            // the symbol's version (if exists)
+            char *version_name = nullptr;
+            if (ver) {
+                typename elf_file<CLASS>::versym version_num = *reinterpret_cast<typename elf_file<CLASS>::versym *>(
+                        the_load_bias + versym +
+                        sizeof(typename elf_file<CLASS>::versym) * elf_file<CLASS>::ELF_R_SYM(curr_rel->r_info)
+                );
+                switch (version_num) {
+                    case 0:
+                    case 1:
+                        break;
+                    default: {
+                        version_name = versions[version_num];
+                        break;
+                    }
+                }
+            }
 
             // find relocation value
             size_t relocation_value = 0;
@@ -471,7 +594,13 @@ protected:
                 bool found = false;
 
                 dlerror(); // reset last call's error
-                void *sym_val = dlsym(RTLD_DEFAULT, sym_name);
+
+                void *sym_val;
+                if (version_name == nullptr) // doesn't have version
+                    sym_val = dlsym(RTLD_DEFAULT, sym_name);
+                else // has version
+                    sym_val = dlvsym(RTLD_DEFAULT, sym_name, version_name);
+
                 char *err = dlerror();
                 if (err == nullptr) { // no error, found
                     relocation_value = (size_t) sym_val;
@@ -480,7 +609,7 @@ protected:
 
                 if (!found) {
                     if (elf_file<CLASS>::ELF_ST_BIND(sym->st_info) != STB_WEAK) {
-                        throw "no relocation found, FAILED\n";
+                        throw "relocation value not found, FAILED\n";
                     }
                     // no relocation found, but symbol is weak
                 }
@@ -498,8 +627,8 @@ protected:
 
 
         // closing all the needed_files files
-        for (size_t i = 0; i < needed_handles.size(); i++) {
-            if (dlclose(needed_handles[i]) != 0) throw "error when dlclose()";
+        for (size_t i = 0; i < handles.size(); i++) {
+            if (dlclose(handles[i]) != 0) throw "error when dlclose()";
         }
 
 

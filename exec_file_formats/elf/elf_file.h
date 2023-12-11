@@ -36,7 +36,9 @@ struct elf_file {
     }
     typedef typename std::conditional<CLASS == 64, Elf64_Addr , Elf32_Addr>::type addr;
     typedef typename std::conditional<CLASS == 64, Elf64_Xword , Elf32_Xword>::type word;
-    typedef typename std::conditional<CLASS == 64, Elf64_Verdef , Elf32_Verdef >::type verdef;
+    typedef typename std::conditional<CLASS == 64, Elf32_Verneed , Elf32_Verneed >::type verneed;
+    typedef typename std::conditional<CLASS == 64, Elf64_Vernaux , Elf32_Vernaux >::type vernaux;
+    typedef typename std::conditional<CLASS == 64, Elf64_Versym , Elf32_Versym >::type versym;
 
 
     virtual header *get_header() const = 0;
@@ -65,7 +67,6 @@ struct elf_file {
 
     virtual sym* find_sym_from_dynsym(const char* name) const = 0;
 
-    virtual verdef * get_verdef_at_raw_offset(unsigned long long off) const = 0;
 };
 
 #endif //LOADER_ELF_FILE_H

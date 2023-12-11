@@ -120,9 +120,6 @@ public:
         return nullptr;
     }
 
-    elf_file<CLASS>::verdef * get_verdef_at_raw_offset(unsigned long long off) const override {
-        return reinterpret_cast<elf_file<CLASS>::verdef *>(get_offset(off));
-    }
 };
 
 #endif //LOADER_OPENED_ELF_FILE_H
