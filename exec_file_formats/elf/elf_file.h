@@ -18,8 +18,6 @@ struct elf_file {
     typedef typename std::conditional<CLASS == 64, Elf64_Rel, Elf32_Rel>::type rel;
     typedef typename std::conditional<CLASS == 64, Elf64_Rela, Elf32_Rela>::type rela;
     typedef typename std::conditional<CLASS == 64, Elf64_Sym , Elf32_Sym >::type sym;
-    typedef typename std::conditional<CLASS == 64, Elf64_Addr , Elf32_Addr>::type addr;
-    typedef typename std::conditional<CLASS == 64, Elf64_Xword , Elf32_Xword>::type word;
     static auto ELF_R_SYM(auto x) {
         if constexpr (CLASS == 64) return ELF64_R_SYM(x);
         else if constexpr (CLASS == 32) return ELF32_R_SYM(x);
@@ -36,6 +34,10 @@ struct elf_file {
         if constexpr (CLASS == 64) return ELF64_ST_TYPE(x);
         else if constexpr (CLASS == 32) return ELF32_ST_TYPE(x);
     }
+    typedef typename std::conditional<CLASS == 64, Elf64_Addr , Elf32_Addr>::type addr;
+    typedef typename std::conditional<CLASS == 64, Elf64_Xword , Elf32_Xword>::type word;
+    typedef typename std::conditional<CLASS == 64, Elf64_Verdef , Elf32_Verdef >::type verdef;
+
 
     virtual header *get_header() const = 0;
 
