@@ -6,6 +6,7 @@
 
 #include "../exec_file_formats/elf/elf_file.h"
 #include "../utils/stack.h"
+#include "../utils/macros.h"
 
 template<int CLASS, typename ELF_FILE>
 class basic_elf_loader {
@@ -17,13 +18,141 @@ protected:
     virtual void jump_entry_elf(void *entry_addr, void *stack_addr, const ELF_FILE &file) const = 0;
 
     virtual ELF_FILE open_elf(
-            const char *str) const = 0; // policy of ELF is that the path to the interpreter is given as null terminated string
+            const char *str) const = 0;
 
-    virtual stack allocate_stack_elf(const ELF_FILE &elf) const = 0;
+#define MAP_ERROR ((void*) -1)
+    // map a segment at addr with length len, open to write to open
+    virtual void* map_fixed(void* addr, size_t len) const = 0;
+    // map a segment at random address with length len, open to write to open
+    virtual void* map_random(size_t len) const = 0;
 
-    // policy of elf to use segments that need to be loaded to the memory address space
-    virtual size_t load_segments_elf(const ELF_FILE &elf,
-                                     size_t *load_min_addr) const = 0;// returns the base address of the load, and stores the minimum address used
+#define UNMAP_ERROR (-1)
+    // unmap a segment at addr with length len
+    virtual int unmap(void* addr, size_t len) const = 0;
+
+#define PROTECT_ERROR (-1)
+    // change back the protection on a segment according to prot
+    virtual int protect(void* addr, size_t len, int flags) const = 0;
+
+
+    const size_t STACK_SIZE = 0x1000000 * 0x10;
+    virtual stack allocate_stack_elf(const ELF_FILE &elf) const { // may be overridden by subclasses
+        size_t size = STACK_SIZE;
+
+        void *stack = map_random(size);
+        if (stack == MAP_ERROR) throw "failed to allocate stack";
+
+        // clearing the stack
+        memset(stack, '\x00', size);
+
+        // setting read and write protection on the stack
+        if (protect(stack, size, PF_R | PF_W) == PROTECT_ERROR) throw "failed to change stack flags";
+
+        return {stack, size};
+    }
+
+    // returns the base address loaded, and stores the minimum address used
+    size_t load_segments_elf(const ELF_FILE &elf,
+                             size_t *load_min_addr) const {
+
+        // check program headers
+        size_t segments_count = elf.get_header()->e_phnum;
+        if (segments_count == 0) throw "no segments in the elf file";
+        size_t segments_table_off = elf.get_header()->e_phoff;
+        size_t segment_table_entry_size = elf.get_header()->e_phentsize;
+
+        // checking that the process can hold the whole elf's image, calculating the load base address on the way
+        // the segments are congruent
+        size_t min = SIZE_MAX;
+        size_t max = 0;
+        for (size_t i = 0; i < segments_count; i++) {
+            typename elf_file<CLASS>::segment *segment = elf.get_program_header(
+                    segments_table_off + segment_table_entry_size * i);
+
+            if (segment->p_type != PT_LOAD) continue;
+
+            // raw load address and mapping length
+            size_t raw_load_addr = (size_t) segment->p_vaddr;
+            size_t raw_mapping_len = (size_t) segment->p_memsz;
+//            if (raw_mapping_len == 0) continue;
+
+            // calc adjusted load address and mapping length
+            size_t adjusted_load_addr = ROUND_DOWN(raw_load_addr,
+                                                   (size_t) segment->p_align); // aligned down
+            size_t adjusted_mapping_len = ROUND_UP(raw_mapping_len + (raw_load_addr - adjusted_load_addr),
+                                                   (size_t) segment->p_align); // aligned up
+
+            if (adjusted_load_addr < min) min = adjusted_load_addr;
+            if (max < adjusted_load_addr + adjusted_mapping_len) max = adjusted_load_addr + adjusted_mapping_len;
+        }
+        size_t range = max - min;
+
+        size_t bias;
+        if (elf.get_header()->e_type == ET_EXEC) {
+            bias = 0;
+
+            void *check = map_fixed((void *) min, range);
+            if (check == MAP_ERROR) throw "segment map fail";
+
+            if (unmap(check, range) == UNMAP_ERROR) throw "can't unmap sample segment";
+
+        } else { // ET_DYN
+            void *mapped = map_random(range);
+            if (mapped == MAP_ERROR) throw "segment map fail";
+
+            if (unmap(mapped, range) == UNMAP_ERROR)  throw "can't unmap sample segment";
+
+            bias = (size_t) mapped;
+        }
+
+
+        // mapping all the LOAD segments
+        *load_min_addr = (size_t) SIZE_MAX; // min mapping address used
+        for (size_t i = 0; i < segments_count; i++) {
+            typename elf_file<CLASS>::segment *segment = elf.get_program_header(
+                    segments_table_off + segment_table_entry_size * i);
+
+            if (segment->p_type != PT_LOAD) continue; // checking segment type
+
+            // raw load address and mapping length
+            size_t raw_load_addr = (size_t) bias + (size_t) segment->p_vaddr;
+            size_t raw_mapping_len = (size_t) segment->p_memsz;
+//            if (raw_mapping_len == 0) continue;
+
+            // calc adjusted load address and mapping length
+            size_t adjusted_load_addr = ROUND_DOWN(raw_load_addr,
+                                                   (size_t) segment->p_align); // aligned down
+            size_t adjusted_mapping_len = ROUND_UP(raw_mapping_len + (raw_load_addr - adjusted_load_addr),
+                                                   (size_t) segment->p_align); // aligned up
+
+
+            // mapping
+            void *mapped = map_fixed((void *) adjusted_load_addr, adjusted_mapping_len);
+            if (mapped == MAP_ERROR) throw "couldn't map the segment";
+
+
+            // clearing the mapping additional mapping caused by alignment
+//            memset(mapped, '\x00', adjusted_mapping_len - raw_mapping_len);
+
+            // copy contents of segment (if exists)
+            size_t content_len = segment->p_filesz;
+            if (content_len > 0) // writing the segment's content
+                memcpy((void *) raw_load_addr, elf.get_offset((size_t) segment->p_offset), segment->p_filesz);
+
+
+            if (content_len < raw_mapping_len) // clearing the rest of the mapping (if exists)
+                memset((void *) ((size_t) raw_load_addr + content_len), '\x00', raw_mapping_len - content_len);
+
+
+            // change back protection
+            if (protect(mapped, adjusted_mapping_len, segment->p_flags) == PROTECT_ERROR) throw "failed to change segment flags";
+
+            if (*load_min_addr == (size_t) SIZE_MAX || adjusted_load_addr < *load_min_addr)
+                *load_min_addr = adjusted_load_addr;
+        }
+
+        return bias; // returns the base address of the load
+    }
 
     virtual size_t setup_stack(struct stack stack, const ELF_FILE &elf, size_t entry_addr, size_t interp_load_bias,
                                size_t load_min_addr) const = 0;

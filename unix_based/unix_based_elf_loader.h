@@ -23,12 +23,11 @@ private:
     const size_t PAGE_SIZE; // required by elf auxiliary vector
     const char *PLATFORM; // required by elf auxiliary vector
 
-    stack allocate_stack_elf(const opened_elf<CLASS> &elf) const override {
-#define STACK_SIZE (0x1000000 * 0x10)
-        size_t size = STACK_SIZE;
+    virtual stack allocate_stack_elf(const opened_elf<CLASS> &elf) const override {
 
-        int prot; // prot flags
+        // searching for the extension PT_GNU_STACK program header
         bool found = false;
+        int flags; // prot flags
         for (size_t i = 0; i < elf.get_header()->e_phnum; i++) {
             typename elf_file<CLASS>::segment *stack_segment = elf.get_program_header(
                     (size_t) elf.get_header()->e_phoff + (size_t) elf.get_header()->e_phentsize * i);
@@ -36,127 +35,32 @@ private:
             if (stack_segment->p_type != PT_GNU_STACK) continue;
 
             found = true;
-            prot = PROT_NONE;
-            if (stack_segment->p_flags & PF_R) prot |= PROT_READ;
-            if (stack_segment->p_flags & PF_W) prot |= PROT_WRITE;
-            if (stack_segment->p_flags & PF_X) prot |= PROT_EXEC;
+            flags = PROT_NONE;
+            if (stack_segment->p_flags & PF_R) flags |= PROT_READ;
+            if (stack_segment->p_flags & PF_W) flags |= PROT_WRITE;
+            if (stack_segment->p_flags & PF_X) flags |= PROT_EXEC;
 
             break;
         }
-        if (!found) prot = PROT_READ | PROT_WRITE;
+        if (!found) {
+            return basic_elf_loader<CLASS, opened_elf<CLASS>>::allocate_stack_elf(elf);
+        }
 
-        int flags = MAP_ANONYMOUS | MAP_PRIVATE;
 
-        void *stack = mmap(nullptr, size, prot, flags, -1, 0);
-        if (stack == MAP_FAILED) throw "failed to allocate stack";
+        size_t size = basic_elf_loader<CLASS, opened_elf<CLASS>>::STACK_SIZE;
 
+        void *stack = map_random(size);
+        if (stack == MAP_ERROR) throw "failed to allocate stack";
+
+        // clearing the stack
         memset(stack, '\x00', size);
 
-        return {stack, size, prot};
+        // setting read and write protection on the stack
+        if (protect(stack, size, flags) == PROTECT_ERROR) throw "failed to change stack flags";
+
+        return {stack, size};
     }
 
-    size_t load_segments_elf(const opened_elf<CLASS> &elf, size_t *load_min_addr) const override {
-
-        // check program headers
-        size_t segments_count = elf.get_header()->e_phnum;
-        if (segments_count == 0) throw "no segments in the elf file";
-        size_t segments_table_off = elf.get_header()->e_phoff;
-        size_t segment_table_entry_size = elf.get_header()->e_phentsize;
-
-        // checking that the process can hold the whole elf's image, calculating the load base address on the way
-        // the segments are congruent
-        size_t min = SIZE_MAX;
-        size_t max = 0;
-        for (size_t i = 0; i < segments_count; i++) {
-            typename elf_file<CLASS>::segment *segment = elf.get_program_header(
-                    segments_table_off + segment_table_entry_size * i);
-
-            if (segment->p_type != PT_LOAD) continue;
-
-            // raw load address and mapping length
-            size_t raw_load_addr = (size_t) segment->p_vaddr;
-            size_t raw_mapping_len = (size_t) segment->p_memsz;
-//            if (raw_mapping_len == 0) continue;
-
-            // calc adjusted load address and mapping length
-            size_t adjusted_load_addr = ROUND_DOWN(raw_load_addr,
-                                                   PAGE_SIZE); // aligned on page boundary (rounding down)
-            size_t adjusted_mapping_len = ROUND_UP(raw_mapping_len + (raw_load_addr - adjusted_load_addr),
-                                                   PAGE_SIZE); // aligned on page size (rounding up)
-
-            if (adjusted_load_addr < min) min = adjusted_load_addr;
-            if (max < adjusted_load_addr + adjusted_mapping_len) max = adjusted_load_addr + adjusted_mapping_len;
-        }
-        size_t range = max - min;
-
-        size_t bias;
-        if (elf.get_header()->e_type == ET_EXEC) {
-            bias = 0;
-            void *check = mmap((void *) min, range, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS, -1,
-                               0);
-            if (check == MAP_FAILED) throw "mmap fail";
-            munmap(check, range);
-        } else { // ET_DYN
-            void *mapped = mmap(nullptr, range, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-            if (mapped == MAP_FAILED) throw "mmap fail";
-            munmap(mapped, range);
-
-            bias = (size_t) mapped;
-        }
-
-
-        // mapping all the LOAD segments
-        *load_min_addr = (size_t) SIZE_MAX; // min mapping address used
-        for (size_t i = 0; i < segments_count; i++) {
-            typename elf_file<CLASS>::segment *segment = elf.get_program_header(
-                    segments_table_off + segment_table_entry_size * i);
-
-            if (segment->p_type != PT_LOAD) continue; // checking segment type
-
-            // raw load address and mapping length
-            size_t raw_load_addr = (size_t) bias + (size_t) segment->p_vaddr;
-            size_t raw_mapping_len = (size_t) segment->p_memsz;
-//            if (raw_mapping_len == 0) continue;
-
-            // calc adjusted load address and mapping length
-            size_t adjusted_load_addr = ROUND_DOWN(raw_load_addr,
-                                                   PAGE_SIZE); // aligned on page boundary (rounding down)
-            size_t adjusted_mapping_len = ROUND_UP(raw_mapping_len + (raw_load_addr - adjusted_load_addr),
-                                                   PAGE_SIZE); // aligned on page size (rounding up)
-
-
-            // mapping
-            void *mapped = mmap((void *) adjusted_load_addr, adjusted_mapping_len, PROT_WRITE,
-                                MAP_FIXED | MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-            if (mapped == MAP_FAILED) throw "couldn't map the segment";
-
-
-            // clearing the mapping additional mapping caused by alignment
-//            memset(mapped, '\x00', adjusted_mapping_len - raw_mapping_len);
-
-            // copy contents of segment (if exists)
-            size_t content_len = segment->p_filesz;
-            if (content_len > 0) // writing the segment's content
-                memcpy((void *) raw_load_addr, elf.get_offset((size_t) segment->p_offset), segment->p_filesz);
-
-
-            if (content_len < raw_mapping_len) // clearing the rest of the mapping (if exists)
-                memset((void *) ((size_t) raw_load_addr + content_len), '\x00', raw_mapping_len - content_len);
-
-
-            // change back protection
-            int prot_flags = PROT_NONE;
-            if (segment->p_flags & PF_R) prot_flags |= PROT_READ;
-            if (segment->p_flags & PF_W) prot_flags |= PROT_WRITE;
-            if (segment->p_flags & PF_X) prot_flags |= PROT_EXEC;
-            mprotect(mapped, adjusted_mapping_len, prot_flags); // using adjusted values
-
-            if (*load_min_addr == (size_t) SIZE_MAX || adjusted_load_addr < *load_min_addr)
-                *load_min_addr = adjusted_load_addr;
-        }
-
-        return bias; // returns the base address of the load
-    }
 
     size_t setup_stack(struct stack stack, const opened_elf<CLASS> &elf,
                        size_t entry_addr,
@@ -285,6 +189,33 @@ private:
 
 protected:
     unix_based_elf_loader(size_t pageSize, const char *platform) : PAGE_SIZE(pageSize), PLATFORM(platform) {}
+
+    virtual void *map_fixed(void *addr, size_t len) const override {
+        void* mapped = mmap(addr, len, PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+        if (mapped != MAP_FAILED) return mapped;
+        else return MAP_ERROR;
+    }
+
+    virtual void *map_random(size_t len) const override {
+        void* mapped = mmap(nullptr, len, PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        if (mapped == MAP_FAILED) return MAP_ERROR;
+        else return mapped;
+    }
+
+    virtual int unmap(void *addr, size_t len) const override {
+        if (munmap(addr, len) == MUNMAP_ERROR) return UNMAP_ERROR;
+        else return 0;
+    }
+
+    virtual int protect(void *addr, size_t len, int flags) const override {
+        int prot_flags = PROT_NONE;
+        if (flags & PF_R) prot_flags |= PROT_READ;
+        if (flags & PF_W) prot_flags |= PROT_WRITE;
+        if (flags & PF_X) prot_flags |= PROT_EXEC;
+
+        if (mprotect(addr,len, prot_flags) == MPROTECT_ERROR) return PROTECT_ERROR;
+        else return 0;
+    }
 
     opened_elf<CLASS> open_elf(const char *str) const override {
         opened_elf<CLASS> elf;
