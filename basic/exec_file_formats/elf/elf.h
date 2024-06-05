@@ -1,6 +1,6 @@
-/* This file defines standard ELF types, structures, and macros.
+/* This raw_file defines standard ELF types, structures, and macros.
    Copyright (C) 1995-2020 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+   This raw_file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ typedef	int64_t  Elf64_Sxword;
 typedef uint32_t Elf32_Addr;
 typedef uint64_t Elf64_Addr;
 
-/* Type of file offsets.  */
+/* Type of raw_file offsets.  */
 typedef uint32_t Elf32_Off;
 typedef uint64_t Elf64_Off;
 
@@ -60,19 +60,19 @@ typedef Elf32_Half Elf32_Versym;
 typedef Elf64_Half Elf64_Versym;
 
 
-/* The ELF file header.  This appears at the start of every ELF file.  */
+/* The ELF raw_file header.  This appears at the start of every ELF raw_file.  */
 
 #define EI_NIDENT (16)
 
 typedef struct
 {
   unsigned char	e_ident[EI_NIDENT];	/* Magic number and other info */
-  Elf32_Half	e_type;			/* Object file type */
+  Elf32_Half	e_type;			/* Object raw_file type */
   Elf32_Half	e_machine;		/* Architecture */
-  Elf32_Word	e_version;		/* Object file version */
+  Elf32_Word	e_version;		/* Object raw_file version */
   Elf32_Addr	e_entry;		/* Entry point virtual address */
-  Elf32_Off	e_phoff;		/* Program header table file offset */
-  Elf32_Off	e_shoff;		/* Section header table file offset */
+  Elf32_Off	e_phoff;		/* Program header table raw_file offset */
+  Elf32_Off	e_shoff;		/* Section header table raw_file offset */
   Elf32_Word	e_flags;		/* Processor-specific flags */
   Elf32_Half	e_ehsize;		/* ELF header size in bytes */
   Elf32_Half	e_phentsize;		/* Program header table entry size */
@@ -85,12 +85,12 @@ typedef struct
 typedef struct
 {
   unsigned char	e_ident[EI_NIDENT];	/* Magic number and other info */
-  Elf64_Half	e_type;			/* Object file type */
+  Elf64_Half	e_type;			/* Object raw_file type */
   Elf64_Half	e_machine;		/* Architecture */
-  Elf64_Word	e_version;		/* Object file version */
+  Elf64_Word	e_version;		/* Object raw_file version */
   Elf64_Addr	e_entry;		/* Entry point virtual address */
-  Elf64_Off	e_phoff;		/* Program header table file offset */
-  Elf64_Off	e_shoff;		/* Section header table file offset */
+  Elf64_Off	e_phoff;		/* Program header table raw_file offset */
+  Elf64_Off	e_shoff;		/* Section header table raw_file offset */
   Elf64_Word	e_flags;		/* Processor-specific flags */
   Elf64_Half	e_ehsize;		/* ELF header size in bytes */
   Elf64_Half	e_phentsize;		/* Program header table entry size */
@@ -157,13 +157,13 @@ typedef struct
 
 #define EI_PAD		9		/* Byte index of padding bytes */
 
-/* Legal values for e_type (object file type).  */
+/* Legal values for e_type (object raw_file type).  */
 
-#define ET_NONE		0		/* No file type */
-#define ET_REL		1		/* Relocatable file */
-#define ET_EXEC		2		/* Executable file */
-#define ET_DYN		3		/* Shared object file */
-#define ET_CORE		4		/* Core file */
+#define ET_NONE		0		/* No raw_file type */
+#define ET_REL		1		/* Relocatable raw_file */
+#define ET_EXEC		2		/* Executable raw_file */
+#define ET_DYN		3		/* Shared object raw_file */
+#define ET_CORE		4		/* Core raw_file */
 #define	ET_NUM		5		/* Number of defined types */
 #define ET_LOOS		0xfe00		/* OS-specific range start */
 #define ET_HIOS		0xfeff		/* OS-specific range end */
@@ -388,7 +388,7 @@ typedef struct
   Elf32_Word	sh_type;		/* Section type */
   Elf32_Word	sh_flags;		/* Section flags */
   Elf32_Addr	sh_addr;		/* Section virtual addr at execution */
-  Elf32_Off	sh_offset;		/* Section file offset */
+  Elf32_Off	sh_offset;		/* Section raw_file offset */
   Elf32_Word	sh_size;		/* Section size in bytes */
   Elf32_Word	sh_link;		/* Link to another section */
   Elf32_Word	sh_info;		/* Additional section information */
@@ -402,7 +402,7 @@ typedef struct
   Elf64_Word	sh_type;		/* Section type */
   Elf64_Xword	sh_flags;		/* Section flags */
   Elf64_Addr	sh_addr;		/* Section virtual addr at execution */
-  Elf64_Off	sh_offset;		/* Section file offset */
+  Elf64_Off	sh_offset;		/* Section raw_file offset */
   Elf64_Xword	sh_size;		/* Section size in bytes */
   Elf64_Word	sh_link;		/* Link to another section */
   Elf64_Word	sh_info;		/* Additional section information */
@@ -597,7 +597,7 @@ typedef struct
 #define STT_OBJECT	1		/* Symbol is a data object */
 #define STT_FUNC	2		/* Symbol is a code object */
 #define STT_SECTION	3		/* Symbol associated with a section */
-#define STT_FILE	4		/* Symbol's name is file name */
+#define STT_FILE	4		/* Symbol's name is raw_file name */
 #define STT_COMMON	5		/* Symbol is a common data object */
 #define STT_TLS		6		/* Symbol is thread-local data object*/
 #define	STT_NUM		7		/* Number of defined types.  */
@@ -679,10 +679,10 @@ typedef struct
 typedef struct
 {
   Elf32_Word	p_type;			/* Segment type */
-  Elf32_Off	p_offset;		/* Segment file offset */
+  Elf32_Off	p_offset;		/* Segment raw_file offset */
   Elf32_Addr	p_vaddr;		/* Segment virtual address */
   Elf32_Addr	p_paddr;		/* Segment physical address */
-  Elf32_Word	p_filesz;		/* Segment size in file */
+  Elf32_Word	p_filesz;		/* Segment size in raw_file */
   Elf32_Word	p_memsz;		/* Segment size in memory */
   Elf32_Word	p_flags;		/* Segment flags */
   Elf32_Word	p_align;		/* Segment alignment */
@@ -692,10 +692,10 @@ typedef struct
 {
   Elf64_Word	p_type;			/* Segment type */
   Elf64_Word	p_flags;		/* Segment flags */
-  Elf64_Off	p_offset;		/* Segment file offset */
+  Elf64_Off	p_offset;		/* Segment raw_file offset */
   Elf64_Addr	p_vaddr;		/* Segment virtual address */
   Elf64_Addr	p_paddr;		/* Segment physical address */
-  Elf64_Xword	p_filesz;		/* Segment size in file */
+  Elf64_Xword	p_filesz;		/* Segment size in raw_file */
   Elf64_Xword	p_memsz;		/* Segment size in memory */
   Elf64_Xword	p_align;		/* Segment alignment */
 } Elf64_Phdr;
@@ -1040,7 +1040,7 @@ typedef struct
 #define VER_DEF_NUM	2		/* Given version number */
 
 /* Legal values for vd_flags (version information flags).  */
-#define VER_FLG_BASE	0x1		/* Version definition of file itself */
+#define VER_FLG_BASE	0x1		/* Version definition of raw_file itself */
 #define VER_FLG_WEAK	0x2		/* Weak version identifier */
 
 /* Versym symbol index values.  */
@@ -1127,7 +1127,7 @@ typedef struct
 
 /* This vector is normally only used by the program interpreter.  The
    usual definition in an ABI supplement uses the name auxv_t.  The
-   vector is not usually defined in a standard <elf.h> file, but it
+   vector is not usually defined in a standard <elf.h> raw_file, but it
    can't hurt.  We rename it to avoid conflicts.  The sizes of these
    types are an arrangement between the exec server and the program
    interpreter, so we don't fully specify them here.  */

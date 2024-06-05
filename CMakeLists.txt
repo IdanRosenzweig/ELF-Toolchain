@@ -1,39 +1,36 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(Loader
-        LANGUAGES C CXX ASM)
-
+project(Loader LANGUAGES C CXX ASM)
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(Linux_x64_loader # for regular x64 executables
-        Linux_x64_loader.cpp
 
-        basic/basic_loader.h
-        basic/basic_elf_loader.h
-        basic/file_id_entity.h
-        basic/flags_entity.h
+## link with libboost
+#find_package(Boost REQUIRED COMPONENTS program_options)
+#include_directories(${Boost_INCLUDE_DIRS})
+#link_libraries(${Boost_LIBRARIES})
 
-        exec_file_formats/exec_file_format.h
+# link with libdl
+link_libraries(${CMAKE_DL_LIBS})
 
-        exec_file_formats/elf/elf_file.h
-        exec_file_formats/elf/elf_lib.h
-        exec_file_formats/elf/elf_flags.h
+set(ABSTRACT_SRC
+        basic/utils/file.h
+        basic/loader/basic_loader.h
 
-        utils/macros.h
-        utils/stack.h
-        utils/proc_var.h
+        basic/exec_file_formats/exec_file_format.h
+        basic/exec_file_formats/check_file_format.h
 
-        unix_based/unix_based_loader.h
-        unix_based/unix_based_loader.cpp
-        unix_based/unix_based_elf_loader.h
-        unix_based/opened_unix_file.cpp
-        unix_based/opened_unix_file.h
-        unix_based/opened_elf_file.h
-
-        unix_based/linux_x64/linux_x64_loader.h
-        unix_based/linux_x64/linux_x64_loader.cpp
-        unix_based/include/error_codes.h
-
+        basic/utils/macros.h
+        basic/utils/process_vars.h
+        basic/utils/stack.h
+        basic/utils/udata.h
 )
-target_link_libraries(Linux_x64_loader ${CMAKE_DL_LIBS})
-set_target_properties(Linux_x64_loader PROPERTIES COMPILE_FLAGS "-Wall -pie -fPIC")
+
+add_executable(elf_loader_linux_x64 # for regular x64 executables
+        ${ABSTRACT_SRC}
+
+        unix/opened_unix_file.cpp
+        unix/linux_x64/linux_x64_elf_loader.cpp
+
+        Linux_x64_loader.cpp
+)
+set_target_properties(elf_loader_linux_x64 PROPERTIES COMPILE_FLAGS "-Wall -pie -fPIC")

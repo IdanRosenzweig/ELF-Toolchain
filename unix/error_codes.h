@@ -1,7 +1,3 @@
-//
-// Created by idan on 12/10/23.
-//
-
 #ifndef LOADER_ERROR_CODES_H
 #define LOADER_ERROR_CODES_H
 
