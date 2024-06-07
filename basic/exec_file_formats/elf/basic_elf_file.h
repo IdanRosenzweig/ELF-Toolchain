@@ -1,13 +1,15 @@
 #ifndef LOADER_BASIC_ELF_FILE_H
 #define LOADER_BASIC_ELF_FILE_H
 
-#include "../../utils/file.h"
+#include "../../utils/basic_file.h"
 #include "../../utils/udata.h"
 
-#include "elf.h"
+#include "elf_raw.h"
 #include <type_traits>
 #include <string>
 #include <memory>
+#include <random>
+
 using namespace std;
 
 template<int CLASS>
@@ -81,28 +83,28 @@ struct basic_elf_file {
     }
 
     // sections
-    inline size_t offset_of_sections_table() const {
+    inline auto& offset_of_sections_table() const {
         return get_header()->e_shoff;
     }
 
-    inline size_t sz_of_section_table_entry() const {
+    inline auto& sz_of_section_table_entry() const {
         return get_header()->e_shentsize;
     }
 
-    inline size_t number_of_sections() const {
+    inline auto& number_of_sections() const {
         return get_header()->e_shnum;
     }
 
     // program headers
-    inline size_t offset_of_program_headrs_table() const {
+    inline auto& offset_of_program_headrs_table() const {
         return get_header()->e_phoff;
     }
 
-    inline size_t sz_of_program_header_table_entry() const {
+    inline auto& sz_of_program_header_table_entry() const {
         return get_header()->e_phentsize;
     }
 
-    inline size_t number_of_program_headers() const {
+    inline auto& number_of_program_headers() const {
         return get_header()->e_phnum;
     }
 
@@ -117,16 +119,8 @@ struct basic_elf_file {
     }
 
     section *find_section(const string &name) const {
-        size_t offset = offset_of_sections_table(); // offset of section headers
-        size_t entry_sz = sz_of_section_table_entry();
-
         for (size_t i = 0; i < number_of_sections(); i++) {
-            size_t curr_sec_off(
-                    offset +
-                    entry_sz * i // current entry
-            );
-
-            auto section = get_section_at_offset(curr_sec_off);
+            auto section = get_section_at_index_from_table(i);
 
             string sec_name = get_string_at_offset_from_strtab((size_t) section->sh_name);
             if (sec_name == name)
@@ -225,11 +219,12 @@ struct basic_elf_file {
     }
 
 
-    /** construct from some base raw_file */
+    /** construct from some base file */
     basic_elf_file() = delete;
-    explicit basic_elf_file(unique_ptr<file> &&file) : raw_file(std::move(file)) {}
+    explicit basic_elf_file(unique_ptr<basic_file> &&file) : raw_file(std::move(file)) {}
 
-    unique_ptr<file> raw_file;
+    unique_ptr<basic_file> raw_file;
+
 
 };
 

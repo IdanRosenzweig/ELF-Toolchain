@@ -1,6 +1,6 @@
 #include "check_file_format.h"
 
-executable_file_format find_executable_format(const unique_ptr<file> &file) {
+executable_file_format find_executable_format(const unique_ptr<basic_file> &file) {
 //    basic_elf_file<64> as_elf_file(raw_file(raw_file));
 //    Elf64_Ehdr *elf_header = (Elf64_Ehdr *) (raw_file.get_offset(0));
 //    if (elf_header->e_ident[EI_MAG0] == ELFMAG0 &&
@@ -13,5 +13,5 @@ executable_file_format find_executable_format(const unique_ptr<file> &file) {
 
     // pe
 
-    throw "no standard executable raw_file format found";
+    throw "no standard executable file format found";
 }

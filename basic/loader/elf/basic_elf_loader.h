@@ -14,7 +14,7 @@ using namespace std;
 #include "../../exec_file_formats/elf/basic_elf_file.h"
 #include "elf_load_flags.h"
 
-#include "../../utils/file.h"
+#include "../../utils/basic_file.h"
 #include "../basic_loader.h"
 #include "../../utils/stack.h"
 #include "../../utils/macros.h"
@@ -567,7 +567,7 @@ public:
                              size_t *load_min_addr) const {
         // check program headers
         size_t segments_count = elf.number_of_program_headers();
-        if (segments_count == 0) throw "no segments in the elf raw_file";
+        if (segments_count == 0) throw "no segments in the elf file";
 
         // checking that the process can hold the whole elf's image, calculating the load base address on the way
         // the segments are congruent
@@ -664,9 +664,9 @@ public:
                           bool explicit_use_interp // explicitly use the interpreter specified in the elf's INTERP program header
     ) const {
         // validating the ELF
-        if (!validate_elf(elf)) throw "elf raw_file is not valid";
+        if (!validate_elf(elf)) throw "elf file is not valid";
 
-        // loading elf segments
+        // mapping elf segments
         size_t load_min_addr; // absolute minimum address used
         size_t load_bias = load_segments_elf(elf, &load_min_addr);
 
@@ -721,7 +721,7 @@ public:
 
 
 public:
-    void load_and_run_file(unique_ptr<file> &&file) override {
+    void load_and_run_file(unique_ptr<basic_file> &&file) override {
         elf_file elf(std::move(file));
         load_and_run_elf(elf, load_flags.explicit_use_interp);
     }
@@ -739,5 +739,7 @@ public:
     }
 
 };
+
+
 
 #endif //LOADER_BASIC_ELF_LOADER_H

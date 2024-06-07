@@ -180,15 +180,16 @@ public:
 
 #define RAND_ENDPOINT "/dev/random"
         int fd = open(RAND_ENDPOINT, O_RDONLY);
-        if (fd == OPEN_ERROR) throw "can't open raw_file for random bytes";
+        if (fd == OPEN_ERROR) throw "can't open file for random bytes";
         if (read(fd, (void *) curr_reserve, 16) != 16) throw "can't read random bytes";
-        if (close(fd) == CLOSE_ERROR) throw "can't close raw_file of random bytes";
+        if (close(fd) == CLOSE_ERROR) throw "can't close file of random bytes";
         set_auxiliary_var(stack_aux, AT_RANDOM, curr_reserve);
         curr_reserve += 16;
 
         set_auxiliary_var(stack_aux, AT_HWCAP2, getauxval(AT_HWCAP2));
 
-        const string &path = static_cast<opened_unix_file *>(elf.raw_file.get())->path;
+
+        string path = elf.raw_file->file_path();
         size_t file_id_len = path.size() + 1; // including the trailing null byte
         memcpy((char *) curr_reserve, path.c_str(), file_id_len);
         set_auxiliary_var(stack_aux, AT_EXECFN, (char *) curr_reserve);

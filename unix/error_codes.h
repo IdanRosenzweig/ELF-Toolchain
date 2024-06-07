@@ -4,6 +4,7 @@
 #define OPEN_ERROR (-1)
 #define STAT_ERROR (-1)
 #define READ_ERROR (-1)
+#define WRITE_ERROR (-1)
 #define CLOSE_ERROR (-1)
 #define MUNMAP_ERROR (-1)
 #define MPROTECT_ERROR (-1)

@@ -2,25 +2,35 @@
 
 bool linux_x64_elf_loader::validate_elf(const elf_file &elf) const {
     // check matching elf class
-    if (elf.get_header()->e_ident[EI_CLASS] != ELFCLASS64)
+    if (elf.get_header()->e_ident[EI_CLASS] != ELFCLASS64) {
+        cerr << "bogus class " << hex << elf.get_header()->e_ident[EI_CLASS] << endl;
         return false;
+    }
 
     // check matching OS
     if (elf.get_os_type() != ELFOSABI_LINUX &&
-            elf.get_os_type() != ELFOSABI_SYSV) // Linux support Unix System V
+        elf.get_os_type() != ELFOSABI_SYSV) { // Linux support Unix System V
+        cerr << "bogus os abi" << endl;
         return false;
+    }
 
     // check matching ISAs
-    if (elf.get_architecture_type() != EM_X86_64)
+    if (elf.get_architecture_type() != EM_X86_64) {
+        cerr << "bogus architecture" << endl;
         return false;
+    }
 
     // check type of executable ELF
-    if (elf.get_object_type() != ET_EXEC && elf.get_object_type() != ET_DYN)
+    if (elf.get_object_type() != ET_EXEC && elf.get_object_type() != ET_DYN) {
+        cerr << "bogus type" << endl;
         return false;
+    }
 
     // check valid version
-    if (elf.get_version() != EV_CURRENT)
+    if (elf.get_version() != EV_CURRENT) {
+        cerr << "bogus version" << endl;
         return false;
+    }
 
     return true;
 }

@@ -9,27 +9,30 @@
 
 opened_unix_file::opened_unix_file(const string &p) : path(p) {
     struct stat file_stat{};
-    if (stat(path.c_str(), &file_stat) == STAT_ERROR) throw "error reading raw_file stat";
+    if (stat(path.c_str(), &file_stat) == STAT_ERROR) throw "error reading file stat";
 
-    size_t size = file_stat.st_size;
-    if (size == 0) throw "raw_file is empty";
+    size_t file_sz = file_stat.st_size;
+    if (file_sz == 0) throw "file is empty";
 
     int fd = open(path.c_str(), O_RDONLY);
-    if (fd == OPEN_ERROR) throw "can't open raw_file";
+    if (fd == OPEN_ERROR) throw "can't open file";
 
-    file_data = (uint8_t *) malloc(size);
-    if (file_data == nullptr) throw "can't allocate buffer for raw_file's data";
+    file_data = udata(file_sz, 0);
 
-    ssize_t no_bytes_read = read(fd, file_data, size);
-    if (no_bytes_read == READ_ERROR || (size_t) no_bytes_read != size) throw "can't read raw_file";
+    ssize_t no_bytes_read = read(fd, file_data.data(), file_sz);
+    if (no_bytes_read == READ_ERROR || (size_t) no_bytes_read != file_sz) throw "can't read whole file";
 
-    if (close(fd) == CLOSE_ERROR) throw "can't close raw_file";
-}
-
-opened_unix_file::~opened_unix_file() {
-    if (file_data != nullptr) free((void *) file_data);
+    if (close(fd) == CLOSE_ERROR) throw "can't close file";
 }
 
 uint8_t *opened_unix_file::offset_in_file(size_t offset) {
-    return file_data + offset;
+    return file_data.data() + offset;
+}
+
+size_t opened_unix_file::file_size() {
+    return file_data.size();
+}
+
+string opened_unix_file::file_path() {
+    return path;
 }
