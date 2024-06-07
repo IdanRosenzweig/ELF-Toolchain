@@ -1,16 +1,7 @@
 import os
 import sys
 
-def convert(file_path):
-
-    # generate encryption data/key
-    encryption_key_file = "encryption_data"
-    with open(encryption_key_file, "wb") as f:
-        f.write(open("/dev/random", "rb").read(50))
-
-    # actually encrypt file
-    encrypted_file_path = "./encrypted_file"
-    os.system("openssl enc -aes-256-cbc -in " + file_path + " -out " + encrypted_file_path + " -pbkdf2 -pass file:" + encryption_key_file)
+def convert(input_file, key_file, orig_path):
 
     array = ""
 
@@ -21,7 +12,7 @@ def convert(file_path):
     array += "using namespace std;\n\n"
 
     # file content
-    with open(encrypted_file_path, "rb") as f:
+    with open(input_file, "rb") as f:
         data = f.read()
 
     array += "uint8_t raw_data[] = {"
@@ -32,11 +23,11 @@ def convert(file_path):
     array += "size_t packed_data_sz = " + str(len(data)) + ";\n\n"
 
     # file path
-    array += "uint8_t* file_path = (uint8_t*) \"" + file_path + "\";\n"
-    array += "size_t file_path_len = " + str(len(file_path)) + ";\n\n"
+    array += "uint8_t* file_path = (uint8_t*) \"" + orig_path + "\";\n"
+    array += "size_t file_path_len = " + str(len(orig_path)) + ";\n\n"
 
     # encryption related
-    with open(encryption_key_file, "rb") as f:
+    with open(key_file, "rb") as f:
         enc = f.read()
 
     array += "uint8_t raw_encryption[] = {"
@@ -50,13 +41,15 @@ def convert(file_path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python bin_file_to_header.py <file_path>")
+    if len(sys.argv) != 4:
+        print("Usage: python bin_file_to_header.py <obfuscated file path> <obfuscation key> <orig path>")
         sys.exit(1)
 
     input_file = sys.argv[1]
+    key_file = sys.argv[2]
+    orig_path = sys.argv[3]
 
-    content = convert(input_file)
+    content = convert(input_file, key_file, orig_path)
 
     with open(f"packed_data.cpp", 'w') as file:
         file.write(content)

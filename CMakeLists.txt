@@ -50,8 +50,7 @@ add_executable(elf_loader_linux_x64 # for regular x64 executables
 add_executable(obfuscator
         ${ABSTRACT_SRC}
 
-        unix/opened_unix_file.cpp
-        unix/linux_x64/linux_x64_elf_loader.cpp
+        unix/file_helper_funcs.cpp
 
         main/packer/obfuscator.cpp
 )
@@ -59,7 +58,7 @@ add_executable(obfuscator
 add_custom_command(
         OUTPUT ${CMAKE_BINARY_DIR}/packed_data.cpp
         COMMAND ${CMAKE_COMMAND} -E echo "generating packed_data.cpp"
-        COMMAND ${PYTHON_PATH} ${CMAKE_SOURCE_DIR}/scripts/bin_file_to_header.py ${PACKED_FILE_PATH}
+        COMMAND ${PYTHON_PATH} ${CMAKE_SOURCE_DIR}/scripts/bin_file_to_header.py ${CMAKE_SOURCE_DIR}/${OBFUSCATED_FILE} ${CMAKE_SOURCE_DIR}/${OBFUSCATION_KEY} ${ORIG_PATH}
         DEPENDS ${PACKED_FILE_PATH}
 )
 add_custom_target(generate_packed_file_header DEPENDS ${CMAKE_BINARY_DIR}/packed_data.cpp)

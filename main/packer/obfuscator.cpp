@@ -26,10 +26,17 @@ udata decrypt_data(const udata &data, const udata &encryption_file) {
 int main(int argc, char *argv[], char *env[]) {
     namespace po = boost::program_options;
 
-    po::options_description opts("");
+    po::options_description opts(
+            "obfuscate files with arbitrary amounts of encryption/compression/encoding layers.\n each obfuscated file is associated with obfuscation key file (inspired from encryption key files) which can be used to deobfuscate the file back");
     opts.add_options()
             ("help,h", "print tool use description")
-            ("file,f", po::value<string>(), "path to the file to obfuscate");
+            ("file,f", po::value<string>(), "path to the file to obfuscate")
+#define DEFAULT_OUTPUT_NAME "obfuscated_data"
+            ("output,o", po::value<string>(),
+             "name/path for the output of the obfuscated file. default is\"" DEFAULT_OUTPUT_NAME "\"")
+#define DEFAULT_KEY_NAME "obfuscation_key"
+            ("key,k", po::value<string>(),
+             "name/path for the output of the obfuscation key file. default is \"" DEFAULT_KEY_NAME "\"");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, opts), vm);
@@ -47,13 +54,36 @@ int main(int argc, char *argv[], char *env[]) {
     }
     string file_path = vm["file"].as<string>();
 
+    // output file
+    string output_file_path;
+    if (vm.count("output"))
+        output_file_path = vm["output"].as<string>();
+    else output_file_path = DEFAULT_OUTPUT_NAME;
+
+    // output key
+    string key_path;
+    if (vm.count("key"))
+        key_path = vm["key"].as<string>();
+    else key_path = DEFAULT_KEY_NAME;
+
+    // obfuscate the content
+    udata file_content = get_data_from_file(file_path);
     vector<obfuscation> obfuscations{
             {obfuscation_type::ENCRYPTION,
-             encryption_aes_256_cbc::convert_to_data(
-                     encryption_aes_256_cbc{udata((uint8_t *) "nvaispurnvlasdcn"), true}
-             )}
+             convert_to_data(encryption{(uint8_t *) "test", false})
+            }
     };
 
-    udata file_content = get_data_from_file(file_path);
+    udata obfuscated_data = perform_obfuscations(file_content, obfuscations, false);
+
+
+    // store obfuscated content in file
+    write_data_to_file(obfuscated_data, output_file_path);
+    cout << "generated obfuscated file: " << output_file_path << endl;
+
+    // store obfuscation key in file
+    udata obfs_key = convert_to_data(obfuscations);
+    write_data_to_file(obfs_key, key_path);
+    cout << "generated obfuscations key file: " << key_path << endl;
 
 }
