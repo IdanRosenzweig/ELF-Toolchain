@@ -5,7 +5,7 @@
 int convert_to_obfuscation(obfuscation *obf, uint8_t *src) {
     const uint8_t *buff = src;
 
-    obf->type = *(obfuscation_type*) buff;
+    obf->type = *(obfuscation_type *) buff;
     buff += sizeof(obfuscation_type);
 
     buff += decode_data(&obf->data, buff);
@@ -18,7 +18,7 @@ udata convert_to_data(const obfuscation &obf) {
     uint8_t buff[BUFF_LEN];
     uint8_t *curr = buff;
 
-    *(obfuscation_type*)curr = obf.type;
+    *(obfuscation_type *) curr = obf.type;
     curr += sizeof(obfuscation_type);
 
     curr += encode_data(obf.data, curr);
@@ -28,7 +28,7 @@ udata convert_to_data(const obfuscation &obf) {
 
 
 int convert_to_obfuscations(obfuscation_list *list, uint8_t *src) {
-    uint8_t * buff = src;
+    uint8_t *buff = src;
 
     while (true) {
         obfuscation next_obf;
@@ -44,9 +44,9 @@ int convert_to_obfuscations(obfuscation_list *list, uint8_t *src) {
 udata convert_to_data(const obfuscation_list &list) {
     udata res;
 
-    for (auto& obf : list)
+    for (auto &obf: list)
         res += convert_to_data(obf);
-    res += convert_to_data(obfuscation{NONE, {(uint8_t*) "none"}});
+    res += convert_to_data(obfuscation{NONE, {(uint8_t *) "none"}});
 
     return res;
 }

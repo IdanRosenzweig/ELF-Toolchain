@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+
 using namespace std;
 
 #include "../basic_elf_file.h"
@@ -16,7 +17,7 @@ using namespace std;
 
 #include "../../../abstract/loading/basic_loader.h"
 
-#include "../../../abstract/utils/basic_file.h"
+#include "../../../abstract/utils/raw_file.h"
 #include "../../../abstract/utils/stack.h"
 #include "../../../abstract/utils/macros.h"
 
@@ -26,9 +27,7 @@ class basic_elf_loader : public basic_loader {
 public:
     using elf_file = basic_elf_file<CLASS>;
 
-    virtual elf_file open_elf(const string &path) const = 0;
-
-    virtual bool validate_elf(const elf_file &elf) const = 0;
+    virtual bool validate_elf(elf_file &elf) const = 0;
 
 
     // pure virtual mappings functions
@@ -51,7 +50,7 @@ public:
 
     // stack related functions
     virtual stack
-    allocate_stack(const elf_file &elf, size_t stack_sz = 0x1000000 * 0x10) const { // may be overridden by subclasses
+    allocate_stack(elf_file &elf, size_t stack_sz = 0x1000000 * 0x10) const { // may be overridden by subclasses
         void *stack = map_arbitrary(stack_sz);
         if (stack == ELF_MAP_ERROR) throw "failed to allocate stack";
 
@@ -65,12 +64,12 @@ public:
         return {stack, stack_sz};
     }
 
-    virtual size_t setup_stack(struct stack stack, const elf_file &elf, size_t entry_addr, size_t interp_load_bias,
+    virtual size_t setup_stack(struct stack stack, elf_file &elf, size_t entry_addr, size_t interp_load_bias,
                                size_t load_min_addr) const = 0;
 
 
     // relocation related functions
-    void do_relocations(const elf_file &elf, size_t the_load_bias) const {
+    void do_relocations(elf_file &elf, size_t the_load_bias) const {
         // find the DYNAMIC program header
         typename elf_file::segment *segment;
         for (size_t i = 0; i < elf.number_of_program_headers(); i++) {
@@ -81,7 +80,7 @@ public:
 
 
         // needed files
-        vector<string> needed_files;
+        vector <string> needed_files;
 
         // the appropriate string and symbol table
         bool strtab = false;
@@ -284,7 +283,7 @@ public:
 
 
         // opening all the needed_files files
-        vector<string> search_prefixes;
+        vector <string> search_prefixes;
         if (!runpath.empty())
             search_prefixes.push_back(runpath + "/");
         if (!rpath.empty())
@@ -551,20 +550,20 @@ public:
 
     // init/finish/entry related functions
     virtual void call_init_array_func(void (*ptr)(),
-                                      const elf_file &elf) const = 0; // call a function found in .init_array
+                                      elf_file &elf) const = 0; // call a function found in .init_array
     virtual void call_init_func(void (*ptr)(),
-                                const elf_file &elf) const = 0; // call the function found in .init_array
+                                elf_file &elf) const = 0; // call the function found in .init_array
 
-    virtual void jump_entry_elf(void *entry_addr, void *stack_addr, const elf_file &file) const = 0;
+    virtual void jump_entry_elf(void *entry_addr, void *stack_addr, elf_file &file) const = 0;
 
-    virtual void exit(const elf_file &elf) const = 0;
+    virtual void exit(elf_file &elf) const = 0;
 
 
-    virtual vector<string> get_possible_search_prefixes() const = 0;
+    virtual vector <string> get_possible_search_prefixes() const = 0;
 
 
     // returns the base address loaded, and stores the minimum address used
-    size_t load_segments_elf(const elf_file &elf,
+    size_t load_segments_elf(elf_file &elf,
                              size_t *load_min_addr) const {
         // check program headers
         size_t segments_count = elf.number_of_program_headers();
@@ -642,7 +641,7 @@ public:
             // copy contents of segment (if exists)
             size_t content_len = segment->p_filesz;
             if (content_len > 0) // writing the segment's content
-                memcpy((void *) raw_load_addr, elf.raw_file->offset_in_file((size_t) segment->p_offset),
+                memcpy((void *) raw_load_addr, elf.base_file.offset_in_file((size_t) segment->p_offset),
                        segment->p_filesz);
 
 
@@ -661,7 +660,7 @@ public:
         return bias; // returns the base address of the load
     }
 
-    void load_and_run_elf(const elf_file &elf,
+    void load_and_run_elf(elf_file &elf,
                           bool explicit_use_interp // explicitly use the interpreter specified in the elf's INTERP program header
     ) const {
         // validating the ELF
@@ -688,7 +687,7 @@ public:
                 invoke_interp = true;
 
                 string interp_path = elf.get_string_at_offset(segment->p_offset);
-                elf_file interp = open_elf(interp_path.c_str());
+                elf_file interp = elf_file(open_raw_file(interp_path.c_str()));
 
                 interp_load_bias = load_segments_elf(interp, &interp_load_min_addr);
                 interp_entry_addr = interp_load_bias + interp.get_entry_addr();
@@ -722,7 +721,7 @@ public:
 
 
 public:
-    void load_and_run_file(unique_ptr<basic_file> &&file) override {
+    void load_and_run_file(raw_file &&file) override {
         elf_file elf(std::move(file));
         load_and_run_elf(elf, load_flags.explicit_use_interp);
     }
@@ -740,7 +739,6 @@ public:
     }
 
 };
-
 
 
 #endif //LOADER_BASIC_ELF_LOADER_H

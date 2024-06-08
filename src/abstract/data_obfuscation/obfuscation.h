@@ -4,6 +4,7 @@
 #include "../utils/udata.h"
 
 #include <vector>
+
 using namespace std;
 
 
@@ -22,21 +23,21 @@ struct obfuscation {
 using obfuscation_list = vector<obfuscation>;
 
 
-int convert_to_obfuscation(obfuscation* obf, uint8_t* src);
+int convert_to_obfuscation(obfuscation *obf, uint8_t *src);
 
 udata convert_to_data(const obfuscation &obf);
 
 
-int convert_to_obfuscations(obfuscation_list* list, uint8_t* src);
+int convert_to_obfuscations(obfuscation_list *list, uint8_t *src);
 
 udata convert_to_data(const obfuscation_list &list);
 
 
-udata perform_obfuscation(const udata &content, const obfuscation& obf,
+udata perform_obfuscation(const udata &content, const obfuscation &obf,
                           bool reverse // either obfuscate or deobfuscate
 );
 
-udata perform_obfuscations(const udata &content, const obfuscation_list& list,
+udata perform_obfuscations(const udata &content, const obfuscation_list &list,
                            bool reverse // either obfuscate or deobfuscate
 );
 

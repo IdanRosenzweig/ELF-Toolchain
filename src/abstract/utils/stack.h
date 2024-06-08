@@ -5,7 +5,7 @@
 
 // stack can grow upwards or downwards
 struct stack {
-    void* ptr;
+    void *ptr;
     size_t size;
 };
 

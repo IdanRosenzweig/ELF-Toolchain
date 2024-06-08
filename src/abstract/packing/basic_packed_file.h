@@ -1,13 +1,13 @@
 #ifndef LOADER_BASIC_PACKED_FILE_H
 #define LOADER_BASIC_PACKED_FILE_H
 
-#include "../utils/basic_file.h"
 #include "../utils/udata.h"
 
 #include "../data_obfuscation/obfuscation.h"
 
 #include <memory>
 #include <cstring>
+
 using namespace std;
 
 /** values given at compile time */
@@ -39,7 +39,7 @@ public:
         memcpy(encryption_key.data(), obf_data, obf_data_sz);
 
         // deobfuscating to the raw packed data
-        vector<obfuscation> list;
+        vector <obfuscation> list;
         convert_to_obfuscations(&list, encryption_key.data());
         udata deobfuscated_data = perform_obfuscations(encrypted_data, list, true);
 
@@ -49,7 +49,7 @@ public:
         handle_data(deobfuscated_data, orig_path);
     }
 
-    virtual void handle_data(const udata& data, const string& original_path) = 0;
+    virtual void handle_data(const udata &data, const string &original_path) = 0;
 
 };
 

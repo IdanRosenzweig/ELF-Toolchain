@@ -1,14 +1,14 @@
 #ifndef LOADER_MY_ELF_H
 #define LOADER_MY_ELF_H
 
-#include "../../abstract/utils/basic_file.h"
-#include "../../abstract/utils/udata.h"
+#include "../../../abstract/utils/udata.h"
 
-#include "basic_elf_file.h"
-#include "elf.h"
+#include "../basic_elf_file.h"
+#include "../elf.h"
 
 #include <string>
 #include <vector>
+
 using namespace std;
 
 struct elf_header {
@@ -77,17 +77,17 @@ struct elf_segment {
 
 struct my_elf_file {
     elf_header header;
-    vector<elf_section> sections;
-    vector<elf_segment> segments;
+    vector <elf_section> sections;
+    vector <elf_segment> segments;
 };
 
-template <int CLASS>
-my_elf_file parse_elf(const basic_elf_file<CLASS>& elf) {
+template<int CLASS>
+my_elf_file parse_elf(const basic_elf_file<CLASS> &elf) {
     using elf_file = basic_elf_file<CLASS>;
 
     my_elf_file res;
     {
-        typename elf_file::header* ptr = elf.get_header();
+        typename elf_file::header *ptr = elf.get_header();
         res.header.magic0 = ptr->e_ident[0];
         res.header.magic1 = ptr->e_ident[1];
         res.header.magic2 = ptr->e_ident[2];
@@ -108,7 +108,7 @@ my_elf_file parse_elf(const basic_elf_file<CLASS>& elf) {
 
     {
         for (int i = 0; i < elf.number_of_sections(); i++) {
-            typename elf_file::section * ptr = elf.get_section_at_index_from_table(i);
+            typename elf_file::section *ptr = elf.get_section_at_index_from_table(i);
 
             elf_section section;
             section.name = elf.get_string_at_offset_from_strtab((size_t) ptr->sh_name);
@@ -118,7 +118,7 @@ my_elf_file parse_elf(const basic_elf_file<CLASS>& elf) {
             section.offset_in_file = ptr->sh_offset;
             section.size_in_file = ptr->sh_size;
             section.data = udata(section.size_in_file, 0);
-            memcpy(section.data.data(), elf.raw_file->offset_in_file(section.offset_in_file), section.size_in_file);
+            memcpy(section.data.data(), elf.base_file.offset_in_file(section.offset_in_file), section.size_in_file);
 
             section.additional_info = ptr->sh_info;
             section.alignment = ptr->sh_addralign;
@@ -129,7 +129,7 @@ my_elf_file parse_elf(const basic_elf_file<CLASS>& elf) {
 
     {
         for (int i = 0; i < elf.number_of_program_headers(); i++) {
-            typename elf_file::segment * ptr = elf.get_program_header_at_index_from_table(i);
+            typename elf_file::segment *ptr = elf.get_program_header_at_index_from_table(i);
 
             elf_segment segment;
             segment.type = ptr->p_type;
@@ -138,7 +138,7 @@ my_elf_file parse_elf(const basic_elf_file<CLASS>& elf) {
             segment.offset_in_file = ptr->sh_offset;
             segment.size_in_file = ptr->sh_size;
             segment.data = udata(segment.size_in_file, 0);
-            memcpy(segment.data.data(), elf.raw_file->offset_in_file(segment.offset_in_file), segment.size_in_file);
+            memcpy(segment.data.data(), elf.base_file.offset_in_file(segment.offset_in_file), segment.size_in_file);
 
             segment.offset_in_load_memory = ptr->p_vaddr;
             segment.offset_in_load_memory = ptr->p_memsz;

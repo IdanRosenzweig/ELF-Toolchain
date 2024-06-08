@@ -8,6 +8,7 @@ struct process_vars {
     char **env;
 
     process_vars() : argc(0), argv(nullptr), env(nullptr) {}
+
     process_vars(int argc, char **argv, char **env) : argc(argc), argv(argv), env(env) {}
 };
 

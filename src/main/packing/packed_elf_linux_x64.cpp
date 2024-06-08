@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <cstring>
-#include <boost/program_options.hpp>
+
 using namespace std;
 
 int main(int argc, char *argv[], char *env[]) {
@@ -16,9 +16,10 @@ int main(int argc, char *argv[], char *env[]) {
         loader.basic_unix_elf_loader::setProcVar({argc, argv, env});
         loader.basic_elf_loader::setLoadFlags({true});
 
-        loader.basic_unix_elf_loader::setJumpSignature(_linux_x64_elf_jump_entry_signature_ret); // change to somewhat obfuscated jump signate (the OEP)
+        loader.basic_unix_elf_loader::setJumpSignature(
+                _linux_x64_elf_jump_entry_signature_ret); // change to somewhat obfuscated jump signate (the OEP)
 
-        // call the packed file
+        // call the packed file with our loader
         packed_elf packedElf(&loader);
         packedElf.run_packed_data();
 

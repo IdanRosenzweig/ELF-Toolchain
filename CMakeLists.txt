@@ -19,7 +19,6 @@ link_libraries(${CMAKE_DL_LIBS})
 
 
 set(ABSTRACT_SRC
-        src/abstract/utils/basic_file.h
         src/abstract/utils/macros.h
         src/abstract/utils/process_vars.h
         src/abstract/utils/stack.h
@@ -42,7 +41,7 @@ set (EXEC_FORMATS
         src/exec_file_formats/check_file_format.h
         src/exec_file_formats/check_file_format.cpp
 
-        src/exec_file_formats/elf/my_elf.h
+        src/exec_file_formats/elf/strip/parse.h
         src/exec_file_formats/elf/basic_elf_file.h
 )
 
@@ -51,13 +50,10 @@ add_executable(elf_loader_linux_x64 # for regular x64 executables
         ${ABSTRACT_SRC}
         ${EXEC_FORMATS}
 
-        src/general_unix/files/opened_unix_file.cpp
-        src/general_unix/files/file_helper_funcs.cpp
         src/linux_x64/elf/linux_x64_elf_loader.cpp
+        src/linux_x64/elf/jump_signatures.cpp
 
         src/main/loading/elf_loader_linux_x64.cpp
-        src/linux_x64/elf/jump_signatures.cpp
-        src/abstract/data_obfuscation/obfuscation.cpp
 )
 
 
@@ -81,11 +77,8 @@ add_executable(packed_file
         ${ABSTRACT_SRC}
         ${EXEC_FORMATS}
 
-        src/general_unix/files/opened_unix_file.cpp
-        src/general_unix/files/file_helper_funcs.cpp
-
-        src/linux_x64/elf/jump_signatures.cpp
         src/linux_x64/elf/linux_x64_elf_loader.cpp
+        src/linux_x64/elf/jump_signatures.cpp
 
         src/main/packing/packed_elf_linux_x64.cpp
 

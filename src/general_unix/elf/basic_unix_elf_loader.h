@@ -9,13 +9,14 @@
 
 #include <cstring>
 #include <unistd.h>
+
 using namespace std;
 
 #include "../../abstract/utils/macros.h"
 #include "../../abstract/utils/process_vars.h"
+#include "../../abstract/utils/raw_file.h"
 
 #include "../../exec_file_formats/elf/loading/basic_elf_loader.h"
-#include "../files/opened_unix_file.h"
 
 
 using unix_elf_jump_entry_signature_t = void (*)(volatile void *exec_entry, volatile void *stack_entry);
@@ -26,12 +27,7 @@ class basic_unix_elf_loader : public basic_elf_loader<CLASS> {
 public:
     using elf_file = basic_elf_file<CLASS>;
 
-
-    elf_file open_elf(const string &path) const override {
-        return elf_file(make_unique<opened_unix_file>(path));
-    }
-
-    virtual bool validate_elf(const elf_file &elf) const override = 0;
+    virtual bool validate_elf(elf_file &elf) const override = 0;
 
 
     void *map_fixed(void *addr, size_t len) const override {
@@ -62,7 +58,7 @@ public:
     }
 
 
-    stack allocate_stack(const elf_file &elf, size_t stack_sz = 0x1000000 * 0x10) const override {
+    stack allocate_stack(elf_file &elf, size_t stack_sz = 0x1000000 * 0x10) const override {
         // searching for the extension PT_GNU_STACK program header
         bool found = false;
         int flags; // prot flags
@@ -96,7 +92,7 @@ public:
         return {stack, stack_sz};
     }
 
-    size_t setup_stack(struct stack stack, const elf_file &elf, size_t entry_addr, size_t interp_load_bias,
+    size_t setup_stack(struct stack stack, elf_file &elf, size_t entry_addr, size_t interp_load_bias,
                        size_t load_min_addr) const override {
         size_t _stack_top = (size_t) stack.ptr + stack.size; // absolute stack top
         _stack_top = ROUND_DOWN(_stack_top, 0x10); // aligned on 16 byte (rounding down)
@@ -150,7 +146,7 @@ public:
         set_auxiliary_var(stack_aux, AT_MINSIGSTKSZ, getauxval(AT_MINSIGSTKSZ));
         set_auxiliary_var(stack_aux, AT_HWCAP, getauxval(AT_HWCAP));
         set_auxiliary_var(stack_aux, AT_HWCAP2, getauxval(AT_HWCAP2));
-        set_auxiliary_var(stack_aux, AT_PHDR, (size_t) (load_min_addr + elf.get_header()->e_phoff));
+        set_auxiliary_var(stack_aux, AT_PHDR, (size_t)(load_min_addr + elf.get_header()->e_phoff));
         set_auxiliary_var(stack_aux, AT_CLKTCK, getauxval(AT_CLKTCK));
 
         set_auxiliary_var(stack_aux, AT_PHENT, elf.sz_of_program_header_table_entry());
@@ -192,7 +188,7 @@ public:
         set_auxiliary_var(stack_aux, AT_HWCAP2, getauxval(AT_HWCAP2));
 
 
-        string path = elf.raw_file->file_path();
+        string path = elf.base_file.file_path();
         size_t file_id_len = path.size() + 1; // including the trailing null byte
         memcpy((char *) curr_reserve, path.c_str(), file_id_len);
         set_auxiliary_var(stack_aux, AT_EXECFN, (char *) curr_reserve);
@@ -222,24 +218,24 @@ public:
                  size_t the_load_bias) const override = 0;
 
 
-    virtual void call_init_array_func(void (*ptr)(), const elf_file &elf) const override {
+    virtual void call_init_array_func(void (*ptr)(), elf_file &elf) const override {
         (*reinterpret_cast<void (*)(int, char **, char **)>(ptr))(proc_var.argc, proc_var.argv, proc_var.env);
     }
 
-    void call_init_func(void (*ptr)(), const elf_file &elf) const override {
+    void call_init_func(void (*ptr)(), elf_file &elf) const override {
         (*reinterpret_cast<void (*)(int, char **, char **)>(ptr))(proc_var.argc, proc_var.argv, proc_var.env);
     }
 
-    void jump_entry_elf(void *entry_addr, void *stack_addr, const elf_file &file) const override {
+    void jump_entry_elf(void *entry_addr, void *stack_addr, elf_file &file) const override {
         jump_signature(entry_addr, stack_addr);
     }
 
-    void exit(const elf_file &elf) const override {
+    void exit(elf_file &elf) const override {
         ::exit(0);
     }
 
 
-    virtual vector<string> get_possible_search_prefixes() const override = 0;
+    virtual vector <string> get_possible_search_prefixes() const override = 0;
 
 
     /** construct the specific unix parameters */

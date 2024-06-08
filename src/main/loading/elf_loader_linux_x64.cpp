@@ -1,7 +1,7 @@
 #include "../../linux_x64/elf/linux_x64_elf_loader.h"
 
 #include <iostream>
-#include <boost/program_options.hpp>
+
 using namespace std;
 
 int main(int argc, char *argv[], char *env[]) {
@@ -16,7 +16,7 @@ int main(int argc, char *argv[], char *env[]) {
 
         loader.basic_unix_elf_loader::setProcVar({argc - 1, argv + 1, env});
         loader.basic_elf_loader::setLoadFlags({false});
-        loader.load_and_run_file(make_unique<opened_unix_file>(argv[1]));
+        loader.load_and_run_file(open_raw_file(argv[1]));
 
     } catch (const char *msg) {
         std::cout << "Exception: " << msg << "\n";

@@ -1,9 +1,11 @@
 #include "../../abstract/data_obfuscation/obfuscation.h"
 #include "../../abstract/data_obfuscation/encryption.h"
+#include "../../abstract/utils/raw_file.h"
 
 #include <iostream>
 #include <fstream>
 #include <boost/program_options.hpp>
+
 using namespace std;
 
 int main(int argc, char *argv[], char *env[]) {
@@ -51,17 +53,11 @@ int main(int argc, char *argv[], char *env[]) {
 
 
     // retrieve the file's content
-    udata file_content;
-    {
-        ifstream f(in_file_path, ios::binary);
-        file_content = udata((istreambuf_iterator<char>(f)),
-                istreambuf_iterator<char>());
-        f.close();
-    }
+    udata file_content = open_raw_file(in_file_path).content;
 
 
     // prepare the obfuscations list
-    vector<obfuscation> obfuscations{
+    vector <obfuscation> obfuscations{
             {obfuscation_type::ENCRYPTION,
              convert_to_data(encryption{(uint8_t *) "abcdefgabcdefgabcdefgabcdefg", false})
             }
@@ -72,22 +68,13 @@ int main(int argc, char *argv[], char *env[]) {
     // and store the obfuscations list
     udata obfuscation_key = convert_to_data(obfuscations);
 
-    // store obfuscated content in file
-    {
-        ofstream f(out_file_path, ios::binary);
-        f.write((const char *) obfuscated_data.data(), obfuscated_data.size());
 
-        f.close();
-        cout << "generated obfuscated file: " << out_file_path << endl;
-    }
+    // store obfuscated content in file
+    store_to_file_system(out_file_path, obfuscated_data);
+    cout << "generated obfuscated file: " << out_file_path << endl;
 
     // store obfuscation key in file
-    {
-        ofstream f(key_file_path, ios::binary);
-        f.write((const char *) obfuscation_key.data(), obfuscation_key.size());
-        f.close();
-
-        cout << "generated obfuscations key file: " << key_file_path << endl;
-    }
+    store_to_file_system(key_file_path, obfuscation_key);
+    cout << "generated obfuscations key file: " << key_file_path << endl;
 
 }

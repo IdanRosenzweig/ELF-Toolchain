@@ -3,7 +3,7 @@
 #include "../properties.h"
 #include "jump_signatures.h"
 
-bool linux_x64_elf_loader::validate_elf(const elf_file &elf) const {
+bool linux_x64_elf_loader::validate_elf(elf_file &elf) const {
     // check matching elf class
     if (elf.get_header()->e_ident[EI_CLASS] != ELFCLASS64) {
         cerr << "bogus class " << hex << elf.get_header()->e_ident[EI_CLASS] << endl;
@@ -101,10 +101,11 @@ void linux_x64_elf_loader::relocate_rel(elf_file::addr reloc_offset, size_t relo
     }
 }
 
-vector<string> linux_x64_elf_loader::get_possible_search_prefixes() const {
+vector <string> linux_x64_elf_loader::get_possible_search_prefixes() const {
     return {"/lib/x86_64-linux-gnu/", "/lib64/"};
 }
 
-linux_x64_elf_loader::linux_x64_elf_loader() : basic_unix_elf_loader<64>(LINUX_X64_PLATFORM_NAME, LINUX_X64_PAGE_SZ, _linux_x64_elf_jump_entry_signature_jmp) {
+linux_x64_elf_loader::linux_x64_elf_loader() : basic_unix_elf_loader<64>(LINUX_X64_PLATFORM_NAME, LINUX_X64_PAGE_SZ,
+                                                                         _linux_x64_elf_jump_entry_signature_jmp) {
 
 }

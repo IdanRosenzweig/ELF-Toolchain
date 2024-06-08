@@ -10,7 +10,7 @@ class elf_strip {
 public:
     using elf_file = basic_elf_file<CLASS>;
 
-    static void delete_elf_sections(const elf_file &elf) {
+    static void delete_elf_sections(elf_file &elf) {
         // for each section:
         // delete its name from the string table
         // delete it from the sections table
@@ -25,7 +25,7 @@ public:
             memset(name, 0, strlen((char *) name));
 
             // delete the section itself from the table
-            memset((void*) section, 0, elf.sz_of_section_table_entry());
+            memset((void *) section, 0, elf.sz_of_section_table_entry());
         }
 
         // mark number of sections 0
@@ -35,10 +35,10 @@ public:
         elf.get_header()->e_shstrndx = 0;
     }
 
-    unique_ptr<basic_file> strip_file(unique_ptr<basic_file> &&file) {
+    raw_file strip_file(raw_file &&file) {
         elf_file elf(std::move(file));
         delete_elf_sections(elf);
-        return std::move(elf.raw_file);
+        return std::move(elf.base_file);
     }
 
 };
