@@ -1,7 +1,7 @@
-#include "../../exec_file_formats/elf/packing/packed_elf.h"
+#include "../../../exec_file_formats/elf/packing/packed_elf.h"
 
-#include "../../linux_x64/elf/linux_x64_elf_loader.h"
-#include "../../linux_x64/elf/jump_signatures.h"
+#include "../../../linux_x64/elf/linux_x64_elf_loader.h"
+#include "../../../linux_x64/elf/jump_signatures.h"
 
 #include <iostream>
 #include <cstring>

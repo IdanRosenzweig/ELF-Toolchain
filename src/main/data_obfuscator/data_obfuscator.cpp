@@ -12,7 +12,7 @@ int main(int argc, char *argv[], char *env[]) {
     namespace po = boost::program_options;
 
     po::options_description opts(
-            "obfuscate files with arbitrary amounts of encryption/compression/encoding layers.\neach obfuscated file is associated with its obfuscation key file which describes the various layers of obsucation that the file has been through.\nthe key file can be used to deobfuscate the file back");
+            "obfuscate data with arbitrary amounts of encryption/compression/encoding layers.\neach obfuscated file is associated with its obfuscation key file which describes the various layers of obsucation that the file has been through.\nthe key file can be used to deobfuscate the file back");
     opts.add_options()
             ("help,h", "print tool use description")
             ("file,f", po::value<string>(), "path to the file to obfuscate")

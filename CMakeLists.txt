@@ -41,7 +41,6 @@ set (EXEC_FORMATS
         src/exec_file_formats/check_file_format.h
         src/exec_file_formats/check_file_format.cpp
 
-        src/exec_file_formats/elf/strip/parse.h
         src/exec_file_formats/elf/basic_elf_file.h
 )
 
@@ -53,15 +52,15 @@ add_executable(elf_loader_linux_x64 # for regular x64 executables
         src/linux_x64/elf/linux_x64_elf_loader.cpp
         src/linux_x64/elf/jump_signatures.cpp
 
-        src/main/loading/elf_loader_linux_x64.cpp
+        src/main/elf/loading/elf_loader_linux_x64.cpp
 )
 
 
-add_executable(obfuscator
+add_executable(data_obfuscator
         ${ABSTRACT_SRC}
         ${EXEC_FORMATS}
 
-        src/main/file_obfuscator/obfuscator.cpp
+        src/main/data_obfuscator/data_obfuscator.cpp
 )
 
 
@@ -80,8 +79,18 @@ add_executable(packed_file
         src/linux_x64/elf/linux_x64_elf_loader.cpp
         src/linux_x64/elf/jump_signatures.cpp
 
-        src/main/packing/packed_elf_linux_x64.cpp
+        src/main/elf/packing/packed_elf_linux_x64.cpp
 
         ${CMAKE_BINARY_DIR}/packed_data.cpp
 )
 add_dependencies(packed_file generate_packed_file_header)
+
+
+add_executable(elf_stripper
+        ${ABSTRACT_SRC}
+        ${EXEC_FORMATS}
+
+        src/exec_file_formats/elf/strip/elf_stripper.h
+
+        src/main/elf/stripping/elf_stripper.cpp
+)

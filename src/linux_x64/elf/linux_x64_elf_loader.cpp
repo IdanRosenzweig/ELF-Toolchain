@@ -5,8 +5,8 @@
 
 bool linux_x64_elf_loader::validate_elf(elf_file &elf) const {
     // check matching elf class
-    if (elf.get_header()->e_ident[EI_CLASS] != ELFCLASS64) {
-        cerr << "bogus class " << hex << elf.get_header()->e_ident[EI_CLASS] << endl;
+    if (elf.parsed_header.e_ident[EI_CLASS] != ELFCLASS64) {
+        cerr << "bogus class " << hex << elf.parsed_header.e_ident[EI_CLASS] << endl;
         return false;
     }
 

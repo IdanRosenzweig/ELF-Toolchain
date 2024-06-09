@@ -63,15 +63,15 @@ public:
         bool found = false;
         int flags; // prot flags
         for (size_t i = 0; i < elf.number_of_program_headers(); i++) {
-            typename elf_file::segment *stack_segment = elf.get_program_header_at_index_from_table(i);
+            typename elf_file::segment& stack_segment = elf.parsed_segments[i];
 
-            if (stack_segment->p_type != PT_GNU_STACK) continue;
+            if (stack_segment.p_type != PT_GNU_STACK) continue;
 
             found = true;
             flags = PROT_NONE;
-            if (stack_segment->p_flags & PF_R) flags |= PROT_READ;
-            if (stack_segment->p_flags & PF_W) flags |= PROT_WRITE;
-            if (stack_segment->p_flags & PF_X) flags |= PROT_EXEC;
+            if (stack_segment.p_flags & PF_R) flags |= PROT_READ;
+            if (stack_segment.p_flags & PF_W) flags |= PROT_WRITE;
+            if (stack_segment.p_flags & PF_X) flags |= PROT_EXEC;
 
             break;
         }
@@ -146,7 +146,7 @@ public:
         set_auxiliary_var(stack_aux, AT_MINSIGSTKSZ, getauxval(AT_MINSIGSTKSZ));
         set_auxiliary_var(stack_aux, AT_HWCAP, getauxval(AT_HWCAP));
         set_auxiliary_var(stack_aux, AT_HWCAP2, getauxval(AT_HWCAP2));
-        set_auxiliary_var(stack_aux, AT_PHDR, (size_t)(load_min_addr + elf.get_header()->e_phoff));
+        set_auxiliary_var(stack_aux, AT_PHDR, (size_t)(load_min_addr + elf.parsed_header.e_phoff));
         set_auxiliary_var(stack_aux, AT_CLKTCK, getauxval(AT_CLKTCK));
 
         set_auxiliary_var(stack_aux, AT_PHENT, elf.sz_of_program_header_table_entry());

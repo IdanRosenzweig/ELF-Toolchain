@@ -28,7 +28,7 @@ raw_file open_raw_file(const string &path) {
 }
 
 void store_to_file_system(const string &path, const udata &content) {
-    ofstream f(path, ios::binary);
+    ofstream f(path, ios::binary | ios::trunc);
     f.write((const char *) content.data(), content.size());
     f.close();
 }
