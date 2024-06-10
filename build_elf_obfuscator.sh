@@ -7,7 +7,7 @@ CMAKE_BUILD_DIR=./cmake-build
 
 # build the loader
 cmake -DCMAKE_BUILD_TYPE=Release -S ./ -B $CMAKE_BUILD_DIR
-cmake --build $CMAKE_BUILD_DIR -t obfuscator
+cmake --build $CMAKE_BUILD_DIR -t elf_obfuscator
 
 # check if build actually failed
 if [ $? -ne 0 ]; then
@@ -21,4 +21,4 @@ fi
 if ! (stat $TARGET_BUILD_DIR &> /dev/null); then
   mkdir $TARGET_BUILD_DIR
 fi
-mv -f $CMAKE_BUILD_DIR/obfuscator $TARGET_BUILD_DIR/
+mv -f $CMAKE_BUILD_DIR/elf_obfuscator $TARGET_BUILD_DIR/

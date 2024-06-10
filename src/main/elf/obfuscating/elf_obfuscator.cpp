@@ -1,6 +1,6 @@
 #include "../../../abstract/utils/raw_file.h"
 
-#include "../../../exec_file_formats/elf/stripping/elf_stripper.h"
+#include "../../../exec_file_formats/elf/obfuscating/elf_obfuscator.h"
 
 #include <iostream>
 
@@ -21,8 +21,8 @@ int main(int argc, char *argv[], char *env[]) {
                 // open 64 bit elf
                 auto elf = parse_elf_from_raw_file<64>(open_raw_file(argv[1]));
 
-                // stripp the file
-                strip_elf_file<64>(elf);
+                // obfuscate the file
+                obfuscated_elf_file<64>(elf);
 
                 generated_file = generate_file_from_custom_elf<64>(std::move(elf));
                 break;
@@ -31,8 +31,8 @@ int main(int argc, char *argv[], char *env[]) {
                 // open 32 bit elf
                 auto elf = parse_elf_from_raw_file<32>(open_raw_file(argv[1]));
 
-                // strip the file
-                strip_elf_file<32>(elf);
+                // obfuscate the file
+                obfuscated_elf_file<32>(elf);
 
                 generated_file = generate_file_from_custom_elf<32>(std::move(elf));
                 break;

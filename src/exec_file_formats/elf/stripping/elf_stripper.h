@@ -38,6 +38,7 @@ void strip_elf_file(basic_elf_file<CLASS> &elf) {
     }
 
     elf.parsed_sections = needed_sections;
+    elf.parsed_header.e_shnum = needed_sections.size();
 
 
     // removing all unnecessary segments
@@ -68,6 +69,7 @@ void strip_elf_file(basic_elf_file<CLASS> &elf) {
     }
 
     elf.parsed_segments = needed_segments;
+    elf.parsed_header.e_phnum = needed_segments.size();
 
 }
 

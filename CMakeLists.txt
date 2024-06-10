@@ -90,7 +90,17 @@ add_executable(elf_stripper
         ${ABSTRACT_SRC}
         ${EXEC_FORMATS}
 
-        src/exec_file_formats/elf/strip/elf_stripper.h
+        src/exec_file_formats/elf/stripping/elf_stripper.h
 
         src/main/elf/stripping/elf_stripper.cpp
+)
+
+
+add_executable(elf_obfuscator
+        ${ABSTRACT_SRC}
+        ${EXEC_FORMATS}
+
+        src/exec_file_formats/elf/obfuscating/elf_obfuscator.h
+
+        src/main/elf/obfuscating/elf_obfuscator.cpp
 )
