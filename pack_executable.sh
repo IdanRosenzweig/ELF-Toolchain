@@ -9,15 +9,24 @@ fi
 echo "path for the executable is $1"
 
 # build target directory and Cmake root directory
-TARGET_BUILD_DIR=./build
+TARGET_BUILD_DIR=./
 CMAKE_BUILD_DIR=./cmake-build
+
 
 # build the obfuscator
 cmake -DCMAKE_BUILD_TYPE=Release -S ./ -B $CMAKE_BUILD_DIR
-cmake --build $CMAKE_BUILD_DIR -t obfuscator
+cmake --build $CMAKE_BUILD_DIR -t data_obfuscator
+
+# check if build actually failed
+if [ $? -ne 0 ]; then
+  echo "Build failed"
+  rm -rf $CMAKE_BUILD_DIR
+  exit
+fi
 
 # obfuscate the executable
-$CMAKE_BUILD_DIR/obfuscator -f $1 -o obf_data -k obf_key
+$CMAKE_BUILD_DIR/data_obfuscator -f $1 -o obf_data -k obf_key
+
 
 # build
 cmake -DCMAKE_BUILD_TYPE=Release -S ./ -B $CMAKE_BUILD_DIR -DOBFUSCATED_FILE=obf_data -DOBFUSCATION_KEY=obf_key -DORIG_PATH=$1
@@ -32,6 +41,7 @@ if [ $? -ne 0 ]; then
   rm -rf $CMAKE_BUILD_DIR
   exit
 fi
+
 
 # move the output of the cmake to the custom build directory
 if ! (stat $TARGET_BUILD_DIR &> /dev/null); then

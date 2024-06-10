@@ -4,6 +4,7 @@
 TARGET_BUILD_DIR=./build
 CMAKE_BUILD_DIR=./cmake-build
 
+
 # build the loader
 cmake -DCMAKE_BUILD_TYPE=Release -S ./ -B $CMAKE_BUILD_DIR
 cmake --build $CMAKE_BUILD_DIR -t obfuscator
@@ -14,6 +15,7 @@ if [ $? -ne 0 ]; then
   rm -rf $CMAKE_BUILD_DIR
   exit
 fi
+
 
 # move the output of the cmake to the custom build directory
 if ! (stat $TARGET_BUILD_DIR &> /dev/null); then

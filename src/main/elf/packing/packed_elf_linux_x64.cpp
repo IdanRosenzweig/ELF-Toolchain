@@ -14,7 +14,7 @@ int main(int argc, char *argv[], char *env[]) {
         linux_x64_elf_loader loader;
 
         loader.basic_unix_elf_loader::setProcVar({argc, argv, env});
-        loader.basic_elf_loader::setLoadFlags({true});
+        loader.basic_elf_loader::setLoadFlags({false});
 
         loader.basic_unix_elf_loader::setJumpSignature(
                 _linux_x64_elf_jump_entry_signature_ret); // change to somewhat obfuscated jump signate (the OEP)

@@ -2,6 +2,7 @@
 #define LOADER_BASIC_PACKED_FILE_H
 
 #include "../utils/udata.h"
+#include "../utils/raw_file.h"
 
 #include "../data_obfuscation/obfuscation.h"
 

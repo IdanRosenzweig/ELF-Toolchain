@@ -11,17 +11,12 @@ void strip_elf_file(basic_elf_file<CLASS> &elf) {
     for (int i = 0; i < elf.parsed_sections.size(); i++) {
         auto type = elf.parsed_sections[i].sh_type;
 
+        bool needed = false;
+
         switch (type) {
-            case SHT_PROGBITS:
-            case SHT_INIT_ARRAY:
-            case SHT_FINI_ARRAY:
             case SHT_STRTAB: // strings table
             case SHT_SYMTAB: // symbols table
-            {
-                needed_sections.push_back(elf.parsed_sections[i]);
-                if (i == elf.parsed_header.e_shstrndx)
-                    elf.parsed_header.e_shstrndx = needed_sections.size() - 1;
-            }
+                needed = true;
         }
 
         if (elf.parsed_header.e_type == ET_DYN)
@@ -31,8 +26,15 @@ void strip_elf_file(basic_elf_file<CLASS> &elf) {
                 case SHT_RELA:
                 case SHT_DYNAMIC:
                 case SHT_DYNSYM:
-                    needed_sections.push_back(elf.parsed_sections[i]);
+                    needed = true;
             }
+
+        if (needed) {
+            needed_sections.push_back(elf.parsed_sections[i]);
+
+            if (i == elf.parsed_header.e_shstrndx)
+                elf.parsed_header.e_shstrndx = needed_sections.size() - 1;
+        }
     }
 
     elf.parsed_sections = needed_sections;
@@ -44,19 +46,25 @@ void strip_elf_file(basic_elf_file<CLASS> &elf) {
     for (int i = 0; i < elf.parsed_segments.size(); i++) {
         auto type = elf.parsed_segments[i].p_type;
 
+        bool needed = false;
+
         switch (type) {
             case PT_LOAD: // regular load segment
             case PT_GNU_STACK: // stack info
 //            case PT_INTERP: // interpreter to use
-                needed_segments.push_back(elf.parsed_segments[i]);
+                needed = true;
         }
 
         if (elf.parsed_header.e_type == ET_DYN)
             // dynamic linking related stuff
             switch (type) {
                 case PT_DYNAMIC:
-                    needed_segments.push_back(elf.parsed_segments[i]);
+                    needed = true;
             }
+
+        if (needed) {
+            needed_segments.push_back(elf.parsed_segments[i]);
+        }
     }
 
     elf.parsed_segments = needed_segments;
