@@ -1,5 +1,5 @@
-#ifndef LOADER_PROCESS_VARS_H
-#define LOADER_PROCESS_VARS_H
+#ifndef ELF_TOOLCHAIN_PROCESS_VARS_H
+#define ELF_TOOLCHAIN_PROCESS_VARS_H
 
 // process variables
 struct process_vars {
@@ -12,4 +12,4 @@ struct process_vars {
     process_vars(int argc, char **argv, char **env) : argc(argc), argv(argv), env(env) {}
 };
 
-#endif //LOADER_PROCESS_VARS_H
+#endif //ELF_TOOLCHAIN_PROCESS_VARS_H

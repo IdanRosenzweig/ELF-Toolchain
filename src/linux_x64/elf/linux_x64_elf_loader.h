@@ -1,5 +1,5 @@
-#ifndef LOADER_LINUX_X64_ELF_LOADER_H
-#define LOADER_LINUX_X64_ELF_LOADER_H
+#ifndef ELF_TOOLCHAIN_LINUX_X64_ELF_LOADER_H
+#define ELF_TOOLCHAIN_LINUX_X64_ELF_LOADER_H
 
 #include "../../general_unix/elf/basic_unix_elf_loader.h"
 
@@ -23,4 +23,4 @@ public:
 
 };
 
-#endif //LOADER_LINUX_X64_ELF_LOADER_H
+#endif //ELF_TOOLCHAIN_LINUX_X64_ELF_LOADER_H

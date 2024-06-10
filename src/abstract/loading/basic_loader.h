@@ -1,5 +1,5 @@
-#ifndef LOADER_BASIC_LOADER_H
-#define LOADER_BASIC_LOADER_H
+#ifndef ELF_TOOLCHAIN_BASIC_LOADER_H
+#define ELF_TOOLCHAIN_BASIC_LOADER_H
 
 #include "../utils/raw_file.h"
 
@@ -14,4 +14,4 @@ public:
     virtual ~basic_loader() {}
 };
 
-#endif //LOADER_BASIC_LOADER_H
+#endif //ELF_TOOLCHAIN_BASIC_LOADER_H

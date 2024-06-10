@@ -1,5 +1,5 @@
-#ifndef LOADER_BASIC_PACKED_FILE_H
-#define LOADER_BASIC_PACKED_FILE_H
+#ifndef ELF_TOOLCHAIN_BASIC_PACKED_FILE_H
+#define ELF_TOOLCHAIN_BASIC_PACKED_FILE_H
 
 #include "../utils/udata.h"
 #include "../utils/raw_file.h"
@@ -54,4 +54,4 @@ public:
 
 };
 
-#endif //LOADER_BASIC_PACKED_FILE_H
+#endif //ELF_TOOLCHAIN_BASIC_PACKED_FILE_H

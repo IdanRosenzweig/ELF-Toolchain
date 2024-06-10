@@ -1,5 +1,5 @@
-#ifndef LOADER_BASIC_UNIX_ELF_LOADER_H
-#define LOADER_BASIC_UNIX_ELF_LOADER_H
+#ifndef ELF_TOOLCHAIN_BASIC_UNIX_ELF_LOADER_H
+#define ELF_TOOLCHAIN_BASIC_UNIX_ELF_LOADER_H
 
 #include <sys/mman.h>
 #include <sys/auxv.h>
@@ -268,4 +268,4 @@ public:
 
 };
 
-#endif //LOADER_BASIC_UNIX_ELF_LOADER_H
+#endif //ELF_TOOLCHAIN_BASIC_UNIX_ELF_LOADER_H

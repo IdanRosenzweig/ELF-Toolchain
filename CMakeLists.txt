@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(Loader-and-Packer LANGUAGES C CXX ASM)
+project(elf_toolchain LANGUAGES C CXX ASM)
 set(CMAKE_CXX_STANDARD 20)
 
 

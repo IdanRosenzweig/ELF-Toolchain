@@ -1,5 +1,5 @@
-#ifndef LOADER_ENCRYPTION_H
-#define LOADER_ENCRYPTION_H
+#ifndef ELF_TOOLCHAIN_ENCRYPTION_H
+#define ELF_TOOLCHAIN_ENCRYPTION_H
 
 #include "../utils/udata.h"
 
@@ -18,4 +18,4 @@ udata convert_to_data(const encryption &enc);
 
 udata perform_encrypt_decrypt(const udata &content, const encryption &enc, bool encrypt);
 
-#endif //LOADER_ENCRYPTION_H
+#endif //ELF_TOOLCHAIN_ENCRYPTION_H

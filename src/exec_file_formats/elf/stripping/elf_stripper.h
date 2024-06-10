@@ -1,5 +1,5 @@
-#ifndef LOADER_AND_PACKER_STRIP_ELF_H
-#define LOADER_AND_PACKER_STRIP_ELF_H
+#ifndef ELF_TOOLCHAIN_STRIP_ELF_H
+#define ELF_TOOLCHAIN_STRIP_ELF_H
 
 #include "../basic_elf_file.h"
 
@@ -73,4 +73,4 @@ void strip_elf_file(basic_elf_file<CLASS> &elf) {
 
 }
 
-#endif //LOADER_AND_PACKER_STRIP_ELF_H
+#endif //ELF_TOOLCHAIN_STRIP_ELF_H

@@ -1,5 +1,5 @@
-#ifndef LOADER_RAW_FILE_H
-#define LOADER_RAW_FILE_H
+#ifndef ELF_TOOLCHAIN_RAW_FILE_H
+#define ELF_TOOLCHAIN_RAW_FILE_H
 
 #include "udata.h"
 
@@ -37,4 +37,4 @@ raw_file open_raw_file(const string &path);
 
 void store_to_file_system(const string &path, const udata &content);
 
-#endif //LOADER_RAW_FILE_H
+#endif //ELF_TOOLCHAIN_RAW_FILE_H

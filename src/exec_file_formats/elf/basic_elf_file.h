@@ -1,5 +1,5 @@
-#ifndef LOADER_BASIC_ELF_FILE_H
-#define LOADER_BASIC_ELF_FILE_H
+#ifndef ELF_TOOLCHAIN_BASIC_ELF_FILE_H
+#define ELF_TOOLCHAIN_BASIC_ELF_FILE_H
 
 #include "../../abstract/utils/udata.h"
 #include "../../abstract/utils/raw_file.h"
@@ -400,4 +400,4 @@ raw_file generate_file_from_custom_elf(basic_elf_file<CLASS> &&elf) {
 }
 
 
-#endif //LOADER_BASIC_ELF_FILE_H
+#endif //ELF_TOOLCHAIN_BASIC_ELF_FILE_H

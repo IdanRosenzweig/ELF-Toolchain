@@ -1,5 +1,5 @@
-#ifndef LOADER_STACK_H
-#define LOADER_STACK_H
+#ifndef ELF_TOOLCHAIN_STACK_H
+#define ELF_TOOLCHAIN_STACK_H
 
 #include <cstdlib>
 
@@ -9,4 +9,4 @@ struct stack {
     size_t size;
 };
 
-#endif //LOADER_STACK_H
+#endif //ELF_TOOLCHAIN_STACK_H

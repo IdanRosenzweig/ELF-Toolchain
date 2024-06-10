@@ -1,5 +1,5 @@
-#ifndef LOADER_BASIC_ELF_LOADER_H
-#define LOADER_BASIC_ELF_LOADER_H
+#ifndef ELF_TOOLCHAIN_BASIC_ELF_LOADER_H
+#define ELF_TOOLCHAIN_BASIC_ELF_LOADER_H
 
 #include <linux/auxvec.h>
 #include <dlfcn.h>
@@ -742,4 +742,4 @@ public:
 };
 
 
-#endif //LOADER_BASIC_ELF_LOADER_H
+#endif //ELF_TOOLCHAIN_BASIC_ELF_LOADER_H

@@ -1,5 +1,5 @@
-#ifndef LOADER_AND_PACKER_ELF_OBFUSCATOR_H
-#define LOADER_AND_PACKER_ELF_OBFUSCATOR_H
+#ifndef ELF_TOOLCHAIN_ELF_OBFUSCATOR_H
+#define ELF_TOOLCHAIN_ELF_OBFUSCATOR_H
 
 #include "../basic_elf_file.h"
 
@@ -12,4 +12,4 @@ void obfuscated_elf_file(basic_elf_file<CLASS>& elf) {
 }
 
 
-#endif //LOADER_AND_PACKER_ELF_OBFUSCATOR_H
+#endif //ELF_TOOLCHAIN_ELF_OBFUSCATOR_H

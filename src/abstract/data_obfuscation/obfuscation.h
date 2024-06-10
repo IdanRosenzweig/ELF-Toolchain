@@ -1,5 +1,5 @@
-#ifndef LOADER_OBFUSCATION_H
-#define LOADER_OBFUSCATION_H
+#ifndef ELF_TOOLCHAIN_OBFUSCATION_H
+#define ELF_TOOLCHAIN_OBFUSCATION_H
 
 #include "../utils/udata.h"
 
@@ -42,4 +42,4 @@ udata perform_obfuscations(const udata &content, const obfuscation_list &list,
 );
 
 
-#endif //LOADER_OBFUSCATION_H
+#endif //ELF_TOOLCHAIN_OBFUSCATION_H

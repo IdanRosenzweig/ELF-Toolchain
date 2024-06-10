@@ -1,5 +1,5 @@
-#ifndef LOADER_UDATA_H
-#define LOADER_UDATA_H
+#ifndef ELF_TOOLCHAIN_UDATA_H
+#define ELF_TOOLCHAIN_UDATA_H
 
 #include <stdint.h>
 #include <string>
@@ -69,4 +69,4 @@ int decode_data(udata *dest_data, const void *src_buff) {
     }
 }
 
-#endif //LOADER_UDATA_H
+#endif //ELF_TOOLCHAIN_UDATA_H

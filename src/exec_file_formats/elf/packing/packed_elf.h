@@ -1,5 +1,5 @@
-#ifndef LOADER_PACKED_ELF_H
-#define LOADER_PACKED_ELF_H
+#ifndef ELF_TOOLCHAIN_PACKED_ELF_H
+#define ELF_TOOLCHAIN_PACKED_ELF_H
 
 #include "../../../abstract/packing/basic_packed_file.h"
 #include "../../../abstract/utils/raw_file.h"
@@ -31,4 +31,4 @@ public:
 };
 
 
-#endif //LOADER_PACKED_ELF_H
+#endif //ELF_TOOLCHAIN_PACKED_ELF_H
