@@ -2,12 +2,13 @@
 #define LOADER_BASIC_ELF_FILE_H
 
 #include "../../abstract/utils/udata.h"
+#include "../../abstract/utils/raw_file.h"
 
 #include "elf.h"
+
 #include <type_traits>
 #include <string>
 #include <memory>
-#include <random>
 #include <iostream>
 
 using namespace std;
@@ -23,25 +24,10 @@ template<int CLASS>
 raw_file generate_file_from_custom_elf(basic_elf_file<CLASS> &&elf);
 
 
-bool check_elf_magic(raw_file &file) {
-    // the identity fields are identical in every elf class type
-    auto elf_header = reinterpret_cast<Elf64_Ehdr* >(file.offset_in_file(0));
-    return elf_header->e_ident[EI_MAG0] == ELFMAG0 &&
-           elf_header->e_ident[EI_MAG1] == ELFMAG1 &&
-           elf_header->e_ident[EI_MAG2] == ELFMAG2 &&
-           elf_header->e_ident[EI_MAG3] == ELFMAG3;
-}
+bool check_elf_magic(raw_file &file);
 
-int check_elf_class(raw_file &file) {
-    // the identity fields are identical in every elf class type
-    auto elf_header = reinterpret_cast<Elf64_Ehdr *>(file.offset_in_file(0));
-    switch (elf_header->e_ident[EI_CLASS]) {
-        case ELFCLASS64: return 64;
-        case ELFCLASS32: return 32;
-        default:
-            throw "invalid elf class";
-    }
-}
+int check_elf_class(raw_file &file);
+
 
 template<int CLASS>
 struct basic_elf_file {
@@ -397,7 +383,7 @@ raw_file generate_file_from_custom_elf(basic_elf_file<CLASS> &&elf) {
     for (int i = 0; i < elf.parsed_sections.size(); i++) {
         res.content.append((uint8_t *) &elf.parsed_sections[i],
                            sizeof(elf.parsed_sections[i]));
-        if (elf.get_string_at_offset_from_strtab((size_t) elf.parsed_sections[i].sh_name) == ".strtab")
+        if (elf.get_string_at_offset_from_strtab((size_t) elf.parsed_sections[i].sh_name) == ".shstrtab")
             new_header->e_shstrndx = i;
     }
 

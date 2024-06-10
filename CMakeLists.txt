@@ -42,6 +42,11 @@ set (EXEC_FORMATS
         src/exec_file_formats/check_file_format.cpp
 
         src/exec_file_formats/elf/basic_elf_file.h
+        src/exec_file_formats/elf/basic_elf_file.cpp
+
+        src/exec_file_formats/elf/stripping/elf_stripper.h
+        src/exec_file_formats/elf/obfuscating/elf_obfuscator.h
+
 )
 
 
@@ -90,8 +95,6 @@ add_executable(elf_stripper
         ${ABSTRACT_SRC}
         ${EXEC_FORMATS}
 
-        src/exec_file_formats/elf/stripping/elf_stripper.h
-
         src/main/elf/stripping/elf_stripper.cpp
 )
 
@@ -99,8 +102,6 @@ add_executable(elf_stripper
 add_executable(elf_obfuscator
         ${ABSTRACT_SRC}
         ${EXEC_FORMATS}
-
-        src/exec_file_formats/elf/obfuscating/elf_obfuscator.h
 
         src/main/elf/obfuscating/elf_obfuscator.cpp
 )

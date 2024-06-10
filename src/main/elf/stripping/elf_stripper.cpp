@@ -39,7 +39,7 @@ int main(int argc, char *argv[], char *env[]) {
             }
         }
 
-        store_to_file_system("obfuscated_file", generated_file.content);
+        store_to_file_system("stripped_file", generated_file.content);
 
     } catch (const char *msg) {
         std::cout << "Exception: " << msg << "\n";
