@@ -3,8 +3,11 @@
 
 #include "../utils/udata.h"
 
-#include <vector>
+#include "encryption.h"
+#include "compression.h"
+#include "encoding.h"
 
+#include <vector>
 using namespace std;
 
 

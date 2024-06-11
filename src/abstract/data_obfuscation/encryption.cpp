@@ -3,11 +3,10 @@
 #include "../utils/raw_file.h"
 
 #include <cstdlib>
-#include <fstream>
 
 using namespace std;
 
-encryption convert_to(const udata &src) {
+encryption convert_to_encryption(const udata &src) {
     encryption res;
 
     const uint8_t *buff = src.data();

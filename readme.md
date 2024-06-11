@@ -21,7 +21,7 @@ The loader is independent of any other tools, and can be used independent for lo
 
 <br><br/>
 The **file stripper** would remove any unnecessary sections and segments off ELF executables, leaving a minimalist file which preserves its execution behaviour.
-More precisely, the stripper would remote any debugging, notes, or unrelated information stored in the executable, leaving only relevant segments and needed sections.
+More precisely, the stripper would remove any debugging, notes, or unrelated information stored in the executable, leaving only relevant segments and needed sections.
 The file stripper is independent of other software in the toolchain, and can be used as a separate tool.
 
 
@@ -32,7 +32,7 @@ The ELF obfuscator is independent of other software in the toolchain, and can be
 
 
 <br><br/>
-The **packer** is a sophisticated software that takes ELF executable and generated a new executable which has the same behaviour as the original one, but the original code is encrypted, compressed and encoded.
+The **packer** is a sophisticated software that takes ELF executable and generates a new executable which has the same behaviour as the original one, but the original code is encrypted, compressed and encoded.
 Therefore, static analysis over the packed executable would produce meaningless results.
 
 The packer software can be split into two parts:

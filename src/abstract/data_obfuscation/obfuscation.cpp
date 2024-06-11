@@ -1,7 +1,5 @@
 #include "obfuscation.h"
 
-#include "encryption.h"
-
 int convert_to_obfuscation(obfuscation *obf, uint8_t *src) {
     const uint8_t *buff = src;
 
@@ -57,13 +55,15 @@ udata perform_obfuscation(const udata &content, const obfuscation &obf, bool rev
 
     switch (obf.type) {
         case ENCRYPTION: {
-            res = perform_encrypt_decrypt(res, convert_to(obf.data), !reverse);
+            res = perform_encrypt_decrypt(res, convert_to_encryption(obf.data), !reverse);
             break;
         }
         case COMPRESSION: {
+            res = perform_compression_decompression(res, convert_to_compression(obf.data), !reverse);
             break;
         }
         case ENCODING: {
+            res = perform_encoding_decoding(res, convert_to_encoding(obf.data), !reverse);
             break;
         }
     }
@@ -73,8 +73,14 @@ udata perform_obfuscation(const udata &content, const obfuscation &obf, bool rev
 
 udata perform_obfuscations(const udata &content, const obfuscation_list &list, bool reverse) {
     udata res = content;
-    for (auto &obf: list)
-        res = perform_obfuscation(res, obf, reverse);
+
+    if (!reverse)
+        for (auto &obf: list)
+            res = perform_obfuscation(res, obf, false);
+    else
+        for (auto it = list.rbegin(); it != list.rend(); it++)
+            res = perform_obfuscation(res, *it, true);
+
 
     return res;
 }

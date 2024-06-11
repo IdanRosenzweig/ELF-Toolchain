@@ -30,6 +30,10 @@ set(ABSTRACT_SRC
         src/abstract/data_obfuscation/obfuscation.cpp
         src/abstract/data_obfuscation/encryption.h
         src/abstract/data_obfuscation/encryption.cpp
+        src/abstract/data_obfuscation/compression.h
+        src/abstract/data_obfuscation/compression.cpp
+        src/abstract/data_obfuscation/encoding.h
+        src/abstract/data_obfuscation/encoding.cpp
 
         src/abstract/loading/basic_loader.h
 

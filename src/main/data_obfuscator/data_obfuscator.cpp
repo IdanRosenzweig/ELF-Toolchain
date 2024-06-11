@@ -1,5 +1,4 @@
 #include "../../abstract/data_obfuscation/obfuscation.h"
-#include "../../abstract/data_obfuscation/encryption.h"
 #include "../../abstract/utils/raw_file.h"
 
 #include <iostream>
@@ -60,7 +59,10 @@ int main(int argc, char *argv[], char *env[]) {
     vector <obfuscation> obfuscations{
             {obfuscation_type::ENCRYPTION,
              convert_to_data(encryption{(uint8_t *) "abcdefgabcdefgabcdefgabcdefg", false})
-            }
+            },
+            {obfuscation_type::COMPRESSION,
+                    convert_to_data(compression{})
+            },
     };
 
     // obfuscated the data
