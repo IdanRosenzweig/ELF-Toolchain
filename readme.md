@@ -10,7 +10,9 @@ A toolchain I developed for ELF executables and malware, containing:
 
 The **ELF loader** is a standalone software that efficiently parses and loads ELF executables onto Linux. The loader supports:
 * both statically linked & dynamically linked executables
+* NX/DEP mapping protection
 * PIE and non-PIE code (userspace ASLR)
+* RELRO mode
 * program stack initialization
 * ELF auxiliary vector initialization
 * both independent jump tail invocation and interpreter-dependent invocation
