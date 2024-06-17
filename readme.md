@@ -2,13 +2,12 @@
 
 ## overview
 A toolchain I developed for ELF executables and malware, containing:
-* standalone ELF loader
-* file stripper for ELF executables
-* ELF obfuscator for the internal structure of ELF files
-* sophisticated packer for ELF executables
+* standalone loader
+* file stripper
+* obfuscator for internal structure
+* sophisticated packer
 
 
-<br><br/>
 The **ELF loader** is a standalone software that efficiently parses and loads ELF executables onto Linux. The loader supports:
 * both statically linked & dynamically linked executables
 * PIE and non-PIE code (userspace ASLR)
@@ -19,19 +18,16 @@ The **ELF loader** is a standalone software that efficiently parses and loads EL
 The loader is independent of any other tools, and can be used independent for loading ELF files into the operating system.
 
 
-<br><br/>
 The **file stripper** would remove any unnecessary sections and segments off ELF executables, leaving a minimalist file which preserves its execution behaviour.
 More precisely, the stripper would remove any debugging, notes, or unrelated information stored in the executable, leaving only relevant segments and needed sections.
 The file stripper is independent of other software in the toolchain, and can be used as a separate tool.
 
 
-<br><br/>
 The **ELF obfuscator** would change the internal structure of ELF executable, without removing any existing data, while preserving the original behaviour of the executable.
 More precisely, it would randomize and shuffle segments of the executable, and possible and sections too.
 The ELF obfuscator is independent of other software in the toolchain, and can be used as a separate tool.
 
 
-<br><br/>
 The **packer** is a sophisticated software that takes ELF executable and generates a new executable which has the same behaviour as the original one, but the original code is encrypted, compressed and encoded.
 Therefore, static analysis over the packed executable would produce meaningless results.
 
@@ -49,7 +45,7 @@ As a whole, the packer would:
 
 
 <br><br/>
-(WARNING: the stripped executables and obfuscated executables produces by the ELF stripper and the ELF obfuscator are considered corrupted and invalid. Regular OS loader will not load them. Most probably, the only loader capable of handling them is the one implemented in this toolchain)
+(WARNING: stripped/obfuscated executables produces by the toolchain are considered corrupted and invalid. Regular OS loader will not load them. Most probably, the only loader capable of handling them is the one implemented in this toolchain)
 
 ## build
 to build the ELF loader, execute `build_elf_loader.sh` at the top directory.
