@@ -4,8 +4,8 @@
 A toolchain I developed for ELF executables and malware, containing:
 * standalone loader
 * file stripper
-* obfuscator for internal structure
-* sophisticated packer
+* data obfuscator
+* packer
 
 
 The **ELF loader** is a standalone software that efficiently parses and loads ELF executables onto Linux. The loader supports:
